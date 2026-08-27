@@ -1,0 +1,14 @@
+{
+    "MIDS-001": {
+      "severity": "ERROR",
+      "title": "Unexpected item in MIDS directory",
+      "description": "The MIDS directory may contain only subject directories and participants.tsv.",
+      "message": "Unexpected item in MIDS directory: {path}"
+    },
+    "MIDS-002": {
+      "severity": "ERROR",
+      "title": "Invalid subject identifier",
+      "description": "Subject identifiers must follow the form sub-XXX and contain only permitted characters.",
+      "message": "Invalid subject identifier '{subject_id}' at {path}"
+    }
+  }

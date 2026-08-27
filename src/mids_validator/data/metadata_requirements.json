@@ -1,0 +1,337 @@
+{
+  "schema_version": "0.1",
+  "status": "working transcription",
+  "source": "ORMIR-MIDS main imaging-method table, supplied by the project owner",
+  "notes": [
+    "Field names and units reproduce the supplied table and require comparison with the detailed standard and current package output before validation code is implemented.",
+    "Expected JSON value types have not yet been assigned.",
+    "MRI suffix-specific requirements are incomplete and will be added after review of the MRI-specific tables.",
+    "Missing mandatory fields produce MIDS-301 warnings. Missing optional fields produce MIDS-304 information findings.",
+    "Draft velocity and strain profiles still inherit mandatory and optional fields from the common MRI profile; only their profile-specific draft fields are not enforced.",
+    "Fields marked proposed or draft are not enforced by the current validator."
+  ],
+  "profiles": {
+    "ct": {
+      "imaging_method": "Computed tomography: CT",
+      "folders": ["ct"],
+      "suffixes": ["ct"],
+      "image_dimensions": [3],
+      "dimension_labels": ["x", "y", "z"],
+      "json_fields": [
+        {"name": "XRayEnergy", "requirement_status": "mandatory", "unit": "kVp"},
+        {"name": "XRayExposure", "requirement_status": "mandatory", "unit": "mAs"}
+      ]
+    },
+    "pcct": {
+      "imaging_method": "Computed tomography: PCCT",
+      "folders": ["ct"],
+      "suffixes": ["pcct"],
+      "image_dimensions": [3],
+      "dimension_labels": ["x", "y", "z"],
+      "json_fields": [
+        {"name": "XRayEnergy", "requirement_status": "mandatory", "unit": "kVp"},
+        {"name": "XRayExposure", "requirement_status": "mandatory", "unit": "mAs"}
+      ]
+    },
+    "cbct": {
+      "imaging_method": "Computed tomography: CBCT",
+      "folders": ["ct"],
+      "suffixes": ["cbct"],
+      "image_dimensions": [3],
+      "dimension_labels": ["x", "y", "z"],
+      "json_fields": [
+        {"name": "XRayEnergy", "requirement_status": "mandatory", "unit": "kVp"}
+      ]
+    },
+    "hrpqct": {
+      "imaging_method": "Computed tomography: HR-pQCT",
+      "folders": ["ct"],
+      "suffixes": ["hrpqct"],
+      "image_dimensions": [3],
+      "dimension_labels": ["x", "y", "z"],
+      "json_fields": [
+        {"name": "XRayEnergy", "requirement_status": "mandatory", "unit": "kVp"},
+        {"name": "XRayExposure", "requirement_status": "mandatory", "unit": "μAs"},
+        {"name": "XRayExposureTime", "requirement_status": "mandatory", "unit": "ms"},
+        {"name": "ConvolutionKernel", "requirement_status": "mandatory", "unit": null},
+        {"name": "RescaleIntercept", "requirement_status": "mandatory", "unit": null},
+        {"name": "RescaleSlope", "requirement_status": "mandatory", "unit": null},
+        {"name": "ScancoMuScaling", "requirement_status": "mandatory", "unit": null},
+        {"name": "ScancoDensitySlope", "requirement_status": "mandatory", "unit": null},
+        {"name": "ScancoDensityIntercept", "requirement_status": "mandatory", "unit": null},
+        {"name": "ScancoMuWater", "requirement_status": "mandatory", "unit": null}
+      ]
+    },
+    "cr": {
+      "imaging_method": "Plain radiography",
+      "folders": ["rx"],
+      "suffixes": ["cr"],
+      "image_dimensions": [2],
+      "dimension_labels": ["x", "y"],
+      "json_fields": [
+        {"name": "ExposureTime", "requirement_status": "mandatory", "unit": "ms"},
+        {"name": "X-RayTubeCurrent", "requirement_status": "mandatory", "unit": "mA"}
+      ]
+    },
+    "mri_common": {
+      "imaging_method": "MRI",
+      "folders": ["mr-anat", "mr-quant"],
+      "suffixes": [],
+      "suffix_status": "various; exact recognized suffixes incomplete",
+      "image_dimensions": [3, 4, 5],
+      "dimension_labels": ["varies by acquisition"],
+      "json_fields": [
+        {"name": "EchoTime", "requirement_status": "mandatory", "unit": "ms"},
+        {"name": "RepetitionTime", "requirement_status": "mandatory", "unit": "ms"},
+        {"name": "FlipAngle", "requirement_status": "mandatory", "unit": "degrees"},
+        {"name": "RefocusingFlipAngle", "requirement_status": "optional", "unit": "degrees"},
+        {"name": "InversionTime", "requirement_status": "optional", "unit": "ms"},
+        {"name": "ScanningSequence", "requirement_status": "optional", "unit": null},
+        {"name": "SequenceVariant", "requirement_status": "optional", "unit": null},
+        {"name": "ScanOptions", "requirement_status": "optional", "unit": null},
+        {"name": "SequenceName", "requirement_status": "optional", "unit": null},
+        {"name": "MRAcquisitionType", "requirement_status": "optional", "unit": null},
+        {"name": "ParallelReductionFactorInPlane", "requirement_status": "optional", "unit": null},
+        {"name": "ParallelAcquisitionTechnique", "requirement_status": "optional", "unit": null},
+        {"name": "PartialFourier", "requirement_status": "optional", "unit": null},
+        {"name": "PartialFourierDirection", "requirement_status": "optional", "unit": null},
+        {"name": "PixelBandwidth", "requirement_status": "optional", "unit": "Hz/px"},
+        {"name": "Manufacturer", "requirement_status": "optional", "unit": null},
+        {"name": "ImagingFrequency", "requirement_status": "optional", "unit": "MHz"},
+        {"name": "MagneticFieldStrength", "requirement_status": "optional", "unit": "T"},
+        {"name": "ImageType", "requirement_status": "optional", "unit": null},
+        {"name": "PhaseEncodingDirection", "requirement_status": "optional", "unit": null}
+      ]
+    },
+    "mri_anatomical_weighted": {
+      "imaging_method": "MRI: T1w / T1w-FS / T2w / T2w-FS",
+      "folders": ["mr-anat"],
+      "suffixes": ["t1w", "t1w-fs", "t2w", "t2w-fs"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [3],
+      "dimension_labels": ["x", "y", "z"],
+      "json_fields": []
+    },
+    "mri_quantitative_relaxometry": {
+      "imaging_method": "MRI: Quantitative T1 / T2 / wT2",
+      "folders": ["mr-quant"],
+      "suffixes": ["t1", "t2", "wt2"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [3],
+      "dimension_labels": ["x", "y", "z"],
+      "json_fields": []
+    },
+    "mri_other_quantitative": {
+      "imaging_method": "MRI: Other recognized quantitative images",
+      "folders": ["mr-quant"],
+      "suffixes": ["ff", "b0", "b1"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [3, 4, 5],
+      "dimension_labels": ["varies by acquisition"],
+      "json_fields": [],
+      "profile_notes": [
+        "These suffixes were already recognized by the validator before the metadata catalogue was introduced; their more specific dimensional and metadata requirements remain to be documented."
+      ]
+    },
+    "mri_dess": {
+      "imaging_method": "MRI: DESS",
+      "folders": ["mr-anat"],
+      "suffixes": ["dess", "dess-fid", "dess_echo"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [3],
+      "dimension_labels": ["x", "y", "z"],
+      "json_fields": [
+        {
+          "name": "PulseSequenceType",
+          "requirement_status": "mandatory",
+          "expected_value": "DESS",
+          "unit": null
+        }
+      ]
+    },
+    "mri_megre": {
+      "imaging_method": "MRI: Multi-echo gradient echo",
+      "folders": ["mr-anat"],
+      "suffixes": ["megre", "part-phase_megre", "part-real_megre", "part-imag_megre", "megre_reco"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [4],
+      "dimension_labels": ["x", "y", "z", "echo"],
+      "json_fields": [
+        {
+          "name": "EchoTime",
+          "requirement_status": "mandatory",
+          "expected_json_type": "array",
+          "unit": "ms"
+        },
+        {
+          "name": "WaterFatShift",
+          "requirement_status": "mandatory",
+          "unit": "pixels"
+        },
+        {
+          "name": "MagneticFieldStrength",
+          "requirement_status": "mandatory",
+          "unit": null
+        },
+        {
+          "name": "ReadoutMode",
+          "requirement_status": "proposed",
+          "allowed_values": ["Monopolar", "Bipolar"],
+          "unit": null
+        },
+        {
+          "name": "PrecessionDirection",
+          "requirement_status": "proposed",
+          "allowed_values": ["Counterclockwise", "Clockwise"],
+          "transcription_note": "The source displays Counter-/Clockwise; this expansion into two values requires confirmation.",
+          "unit": null
+        }
+      ]
+    },
+    "mri_mese": {
+      "imaging_method": "MRI: Multi-echo spin echo",
+      "folders": ["mr-anat"],
+      "suffixes": ["mese", "part-phase_mese"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [4],
+      "dimension_labels": ["x", "y", "z", "echo"],
+      "json_fields": [
+        {
+          "name": "EchoTime",
+          "requirement_status": "mandatory",
+          "expected_json_type": "array",
+          "unit": "ms"
+        },
+        {
+          "name": "RefocusingFlipAngle",
+          "requirement_status": "mandatory",
+          "unit": "degrees"
+        },
+        {
+          "name": "ExcitationProfile",
+          "requirement_status": "optional",
+          "expected_json_type": "array",
+          "unit": "degrees"
+        },
+        {
+          "name": "RefocusingProfile",
+          "requirement_status": "optional",
+          "expected_json_type": "array",
+          "unit": "degrees"
+        }
+      ]
+    },
+    "mri_velocity": {
+      "imaging_method": "MRI: Velocity quantification",
+      "profile_status": "draft",
+      "folders": ["mr-quant"],
+      "suffixes": ["vel"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [5],
+      "dimension_labels": ["x", "y", "z", "t", "direction"],
+      "json_fields": [
+        {
+          "name": "FourthDimension",
+          "requirement_status": "draft",
+          "expected_value": "TriggerTime",
+          "unit": null
+        },
+        {
+          "name": "TriggerTime",
+          "requirement_status": "draft",
+          "expected_json_type": "array",
+          "unit": "ms"
+        },
+        {
+          "name": "FifthDimension",
+          "requirement_status": "draft",
+          "expected_value": "VelocityEncodingDirection",
+          "unit": null
+        },
+        {
+          "name": "VelocityEncodingDirection",
+          "requirement_status": "draft",
+          "expected_json_type": "array of vectors",
+          "unit": null
+        },
+        {
+          "name": "Venc",
+          "requirement_status": "draft",
+          "expected_json_type": "array",
+          "unit": "m/s"
+        }
+      ],
+      "profile_notes": [
+        "Volume values store actual velocity in m/s and range from -Venc to +Venc for each encoding direction.",
+        "VelocityEncodingDirection contains one vector for each encoded velocity direction; for example [[1,0,0],[0,1,0],[0,0,1]] represents row, column, and slice directions.",
+        "Venc records the original value for each volume dimension for velocity-to-noise considerations; the volume data are already scaled for interpretation."
+      ]
+    },
+    "mri_strain_eigenvalues": {
+      "imaging_method": "MRI: Strain Eigenvalues",
+      "profile_status": "draft",
+      "folders": ["mr-quant"],
+      "suffixes": ["strain"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [5],
+      "dimension_labels": ["x", "y", "z", "t", "ev_order"],
+      "json_fields": [
+        {"name": "FourthDimension", "requirement_status": "draft", "expected_value": "TriggerTime", "unit": null},
+        {"name": "TriggerTime", "requirement_status": "draft", "expected_json_type": "array", "unit": "ms"},
+        {"name": "FifthDimension", "requirement_status": "draft", "expected_value": "EigenOrder", "unit": null}
+      ]
+    },
+    "mri_strain_eigenvectors": {
+      "imaging_method": "MRI: Strain Eigenvectors",
+      "profile_status": "draft",
+      "folders": ["mr-quant"],
+      "suffixes": ["strain-vec"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [6],
+      "dimension_labels": ["x", "y", "z", "t", "ev_order", "vector_component"],
+      "json_fields": [
+        {"name": "FourthDimension", "requirement_status": "draft", "expected_value": "TriggerTime", "unit": null},
+        {"name": "TriggerTime", "requirement_status": "draft", "expected_json_type": "array", "unit": "ms"},
+        {"name": "FifthDimension", "requirement_status": "draft", "expected_value": "EigenOrder", "unit": null},
+        {"name": "SixthDimension", "requirement_status": "draft", "expected_value": "VectorComponent", "unit": null}
+      ]
+    },
+    "mri_strain_rate_eigenvalues": {
+      "imaging_method": "MRI: Strain Rate Eigenvalues",
+      "profile_status": "draft",
+      "folders": ["mr-quant"],
+      "suffixes": ["strain-rate"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [5],
+      "dimension_labels": ["x", "y", "z", "t", "ev_order"],
+      "json_fields": [
+        {"name": "FourthDimension", "requirement_status": "draft", "expected_value": "TriggerTime", "unit": null},
+        {"name": "TriggerTime", "requirement_status": "draft", "expected_json_type": "array", "unit": "ms"},
+        {"name": "FifthDimension", "requirement_status": "draft", "expected_value": "EigenOrder", "unit": null}
+      ]
+    },
+    "mri_strain_rate_eigenvectors": {
+      "imaging_method": "MRI: Strain Rate Eigenvectors",
+      "profile_status": "draft",
+      "folders": ["mr-quant"],
+      "suffixes": ["strain-rate-vec"],
+      "inherits_json_fields_from": "mri_common",
+      "image_dimensions": [6],
+      "dimension_labels": ["x", "y", "z", "t", "ev_order", "vector_component"],
+      "json_fields": [
+        {"name": "FourthDimension", "requirement_status": "draft", "expected_value": "TriggerTime", "unit": null},
+        {"name": "TriggerTime", "requirement_status": "draft", "expected_json_type": "array", "unit": "ms"},
+        {"name": "FifthDimension", "requirement_status": "draft", "expected_value": "EigenOrder", "unit": null},
+        {"name": "SixthDimension", "requirement_status": "draft", "expected_value": "VectorComponent", "unit": null}
+      ]
+    }
+  },
+  "shared_semantics": {
+    "eigen_order": [
+      "First Eigenvalue/Eigenvector: largest positive eigenvalue.",
+      "Second Eigenvalue/Eigenvector: largest negative eigenvalue.",
+      "Third Eigenvalue/Eigenvector: remaining eigenvalue."
+    ],
+    "vector_component_reference": "Vector components use the same reference system as the volume."
+  }
+}

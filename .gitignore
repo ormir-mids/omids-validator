@@ -1,0 +1,23 @@
+# Local or potentially sensitive datasets
+sample_data/
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Operating-system and editor files
+.DS_Store
+._*
+.vscode/
+.idea/
