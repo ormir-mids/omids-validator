@@ -66,12 +66,26 @@ def mids_002_unexpected_root_items(
     """MIDS-002: report unsupported items in the dataset root."""
 
     findings: list[Finding] = []
+    has_exact_participants_table = any(
+        item.is_file() and item.name == "participants.tsv"
+        for item in inventory.root_items
+    )
 
     for item in inventory.root_items:
         is_subject = item.is_dir() and item.name.startswith("sub-")
         is_participants = item.is_file() and item.name == "participants.tsv"
+        is_mis_cased_participants = (
+            not has_exact_participants_table
+            and item.is_file()
+            and item.name.casefold() == "participants.tsv"
+        )
 
-        if not is_subject and not is_participants and not _is_operating_system_artifact(item):
+        if (
+            not is_subject
+            and not is_participants
+            and not is_mis_cased_participants
+            and not _is_operating_system_artifact(item)
+        ):
             findings.append(
                 Finding(
                     rule_id="MIDS-002",

@@ -49,6 +49,11 @@ class StructureRuleTests(unittest.TestCase):
 
         self.assertIn("MIDS-002", self._rule_ids())
 
+    def test_mids_002_defers_case_variant_participants_table_to_layer_5(self) -> None:
+        self._touch("Participants.tsv")
+
+        self.assertNotIn("MIDS-002", self._rule_ids())
+
     def test_mids_003_reports_invalid_subject_identifier(self) -> None:
         self._touch("sub-bad_name/ct/sub-bad_name_ct.nii.gz")
 

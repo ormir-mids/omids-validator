@@ -353,55 +353,32 @@ defensible common shape.
 
 **Severity:** WARNING
 
-The dataset does not contain `participants.tsv`. If `--participants` is
-supplied, the validator creates the table and reports the action.
+The dataset does not contain a root-level file named exactly
+`participants.tsv`. Filename capitalization is significant: a case variant
+such as `Participants.tsv` is reported by this rule, rather than as an
+unexpected root item. If `--participants` is supplied, the validator creates
+the table and reports the action.
 
-### MIDS-502 — Participants table cannot be parsed
-
-**Severity:** ERROR
-
-`participants.tsv` is not valid tab-separated tabular data. A malformed table
-must not be automatically rewritten.
-
-### MIDS-503 — Participant identifier column is absent
+### MIDS-502 — Participants table is invalid
 
 **Severity:** ERROR
 
-`participants.tsv` must contain a `participant_id` column.
+`participants.tsv` must be valid tab-separated tabular data with one coherent
+`participant_id` key per row. Parsing errors, inconsistent rows, a missing
+identifier column, empty identifiers, and duplicate identifiers are all
+reported by this rule. Identifier spelling and correspondence to subject
+directories are handled by MIDS-503. A malformed table must not be
+automatically rewritten.
 
-### MIDS-504 — Duplicate participant identifier
-
-**Severity:** ERROR
-
-Two or more rows contain the same non-empty `participant_id`.
-
-### MIDS-505 — Subject is missing from participants table
+### MIDS-503 — Participant inventory mismatch
 
 **Severity:** WARNING
 
-A `sub-<ID>` directory has no corresponding row in `participants.tsv`. If
-`--participants` is supplied, the missing subject is added without changing
-existing values.
-
-### MIDS-506 — Participant row has no subject directory
-
-**Severity:** WARNING
-
-A participant row has no corresponding `sub-<ID>` directory. The validator
-reports but never automatically deletes the row.
-
-### MIDS-507 — Invalid participant identifier
-
-**Severity:** ERROR
-
-A non-empty `participant_id` does not follow the accepted `sub-<ID>` form.
-
-### MIDS-508 — Malformed participant row
-
-**Severity:** ERROR
-
-A participant row has an inconsistent number of fields or cannot be interpreted
-using the table header. The validator must not overwrite a malformed table.
+The `sub-<ID>` directories and `participant_id` values must describe the same
+subject set. The rule reports both subject directories absent from the table
+and participant rows with no subject directory. If `--participants` is
+supplied, the validator adds missing subject IDs without changing existing
+values or deleting unmatched rows.
 
 ## Deferred rules and open questions
 
