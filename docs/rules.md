@@ -24,9 +24,10 @@ finding.
 - `MIDS-0XX`: dataset structure
 - `MIDS-1XX`: file naming and relationships
 - `MIDS-2XX`: sidecar files
-- `MIDS-3XX`: JSON metadata and optional NIfTI inspection
-- `MIDS-4XX`: dataset-wide consistency and participants
-- `MIDS-5XX` through `MIDS-9XX`: reserved
+- `MIDS-3XX`: JSON metadata
+- `MIDS-4XX`: optional image integrity and consistency checks
+- `MIDS-5XX`: dataset-wide consistency and participants
+- `MIDS-6XX` through `MIDS-9XX`: reserved
 
 Rule IDs are intended to remain stable as new rules are added.
 
@@ -264,7 +265,7 @@ not matter, but missing or additional top-level keys produce this finding.
 Malformed or unreadable JSON is reported by MIDS-203 and is not reported again
 by this rule.
 
-## Layer 3: Metadata and optional NIfTI inspection
+## Layer 3: JSON metadata
 
 ### Standard metadata rules
 
@@ -314,87 +315,67 @@ Layer 2 finding reports the sidecar problem without a cascade of metadata-field
 findings. A primary sidecar containing valid JSON that is not an object is also
 skipped until MIDS-302 type validation is implemented.
 
-### Optional NIfTI inspection rules
+## Layer 4: Optional image integrity and consistency
 
-Rules MIDS-310 through MIDS-316 run only when `--inspect-images` is supplied.
-Inspection should read image headers without loading complete voxel arrays.
+Image inspection is a practical validator extension rather than a requirement
+currently defined by the MIDS standard. MIDS-401 is currently implemented as a
+module-level check; command-line `--inspect-images` wiring remains pending.
+It reads image headers without loading complete voxel arrays.
 
-### MIDS-310 — Unreadable or invalid NIfTI file
+### MIDS-401 — Unreadable or invalid NIfTI file
 
 **Severity:** ERROR
 
 The image cannot be opened and interpreted as a NIfTI file.
 
-### MIDS-311 — Unsupported NIfTI dimensionality
+The header collector attempts to open each discovered NIfTI image exactly once.
+An unsuccessful attempt produces this finding; later image rules receive only
+successfully opened image records.
 
-**Severity:** ERROR
-
-The image has a number of dimensions that is unsupported for its recognized
-acquisition profile.
-
-### MIDS-312 — Zero-sized image dimension
-
-**Severity:** ERROR
-
-One or more NIfTI dimensions has a size of zero.
-
-### MIDS-313 — Invalid voxel spacing
+### MIDS-402 — Acquisition dimension outlier
 
 **Severity:** WARNING
 
-The NIfTI header contains missing, zero, negative, or otherwise unusable voxel
-spacing.
+An image's dimensions differ from the common shape for the same image type
+across the dataset. The image type is the complete case-insensitive filename
+label following `sub-<ID>_`; it is distinct from the final acquisition suffix
+used for metadata-profile lookup. For example, `part-phase_megre` and
+`part-real_megre` are separate image types.
 
-### MIDS-314 — Invalid spatial transform
+The rule runs only when one shape represents at least 80% of the readable
+images with an image type. It reports only the remaining images. When no shape
+reaches that threshold, the group produces no finding because it has no
+defensible common shape.
 
-**Severity:** WARNING
+## Layer 5: Dataset-wide consistency and participants
 
-The NIfTI header contains a degenerate or unusable affine/orientation transform.
-
-### MIDS-315 — Image dimensions disagree with acquisition profile
-
-**Severity:** WARNING
-
-The image shape or number of dimensions differs from the expectation for its
-recognized acquisition type.
-
-### MIDS-316 — Acquisition dimension outlier
-
-**Severity:** WARNING
-
-An image's dimensions differ from comparable images with the same acquisition
-across the dataset. Reports should state the common shape and list only the
-outliers.
-
-## Layer 4: Dataset-wide consistency and participants
-
-### MIDS-401 — Participants table is absent
+### MIDS-501 — Participants table is absent
 
 **Severity:** WARNING
 
 The dataset does not contain `participants.tsv`. If `--participants` is
 supplied, the validator creates the table and reports the action.
 
-### MIDS-402 — Participants table cannot be parsed
+### MIDS-502 — Participants table cannot be parsed
 
 **Severity:** ERROR
 
 `participants.tsv` is not valid tab-separated tabular data. A malformed table
 must not be automatically rewritten.
 
-### MIDS-403 — Participant identifier column is absent
+### MIDS-503 — Participant identifier column is absent
 
 **Severity:** ERROR
 
 `participants.tsv` must contain a `participant_id` column.
 
-### MIDS-404 — Duplicate participant identifier
+### MIDS-504 — Duplicate participant identifier
 
 **Severity:** ERROR
 
 Two or more rows contain the same non-empty `participant_id`.
 
-### MIDS-405 — Subject is missing from participants table
+### MIDS-505 — Subject is missing from participants table
 
 **Severity:** WARNING
 
@@ -402,20 +383,20 @@ A `sub-<ID>` directory has no corresponding row in `participants.tsv`. If
 `--participants` is supplied, the missing subject is added without changing
 existing values.
 
-### MIDS-406 — Participant row has no subject directory
+### MIDS-506 — Participant row has no subject directory
 
 **Severity:** WARNING
 
 A participant row has no corresponding `sub-<ID>` directory. The validator
 reports but never automatically deletes the row.
 
-### MIDS-407 — Invalid participant identifier
+### MIDS-507 — Invalid participant identifier
 
 **Severity:** ERROR
 
 A non-empty `participant_id` does not follow the accepted `sub-<ID>` form.
 
-### MIDS-408 — Malformed participant row
+### MIDS-508 — Malformed participant row
 
 **Severity:** ERROR
 

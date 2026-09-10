@@ -54,6 +54,36 @@ without producing a line for every absent field.
 
 ## NIfTI and image-content inspection
 
+### Unsupported NIfTI dimensionality
+
+Check whether an image has a number of dimensions unsupported for its
+recognized acquisition profile. This needs an agreed acquisition-profile
+catalogue and representative converted output before it can be enforced.
+
+### Zero-sized image dimension
+
+Check whether one or more NIfTI dimensions has a size of zero. The behaviour of
+relevant NIfTI readers and the appropriate severity need verification before
+this becomes an active rule.
+
+### Invalid voxel spacing
+
+Check for missing, zero, negative, or otherwise unusable voxel spacing. The
+validator needs evidence-based thresholds that avoid flagging legitimate
+research acquisitions.
+
+### Invalid spatial transform
+
+Check for a degenerate or unusable affine/orientation transform. This requires
+clear distinctions between invalid transforms and legitimate absent or partial
+qform/sform information.
+
+### Image dimensions disagree with acquisition profile
+
+Compare image shape and number of dimensions with the expectation for a
+recognized acquisition type. This is deferred until those expectations are
+explicitly agreed and tested against representative datasets.
+
 ### Full voxel-data scan
 
 Optionally inspect arrays for NaN, infinity, unexpected constant images, or
@@ -63,12 +93,6 @@ unsupported data ranges. This requires loading image data and may be expensive.
 
 Compare qform and sform, identify contradictory spatial transforms, and check
 orientation consistency across an acquisition family.
-
-### Cross-subject shape consistency
-
-Group comparable acquisitions and report shape, voxel-spacing, dimension, or
-orientation outliers. This is particularly promising for multi-echo data but
-needs explicit grouping rules.
 
 ### Metadata-to-image dimension checks
 

@@ -1,4 +1,4 @@
-"""Tests for Layer 3 metadata and optional NIfTI rules."""
+"""Tests for Layer 3 JSON metadata rules."""
 
 import json
 import tempfile

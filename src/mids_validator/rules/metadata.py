@@ -1,8 +1,4 @@
-"""Layer 3 rules: JSON metadata and optional NIfTI header inspection.
-
-Standard validation will check required metadata fields and their basic types.
-NIfTI checks will run only when image inspection is requested.
-"""
+"""Layer 3 rules: JSON metadata fields and values."""
 
 import json
 from pathlib import Path

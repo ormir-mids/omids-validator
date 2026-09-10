@@ -31,9 +31,10 @@ The first digit identifies the validation layer:
 - `MIDS-0XX`: dataset structure
 - `MIDS-1XX`: file naming and relationships
 - `MIDS-2XX`: sidecar files
-- `MIDS-3XX`: metadata and optional NIfTI inspection
-- `MIDS-4XX`: dataset-wide consistency and participants
-- `MIDS-5XX` through `MIDS-9XX`: reserved
+- `MIDS-3XX`: JSON metadata
+- `MIDS-4XX`: optional image integrity and consistency checks
+- `MIDS-5XX`: dataset-wide consistency and participants
+- `MIDS-6XX` through `MIDS-9XX`: reserved
 
 Rule IDs remain stable as the catalogue grows.
 
@@ -79,10 +80,17 @@ NIfTI header inspection is initially opt-in:
 mids-validator DATASET --inspect-images
 ```
 
-It checks whether images are readable and examines dimensions, voxel spacing,
-spatial transforms, and dimension consistency without loading complete voxel
-arrays. Outlier summaries are preferred over one finding for every normal
-image.
+These checks are practical validator extensions rather than requirements
+currently defined by the MIDS standard. Reports must preserve that distinction
+when presenting Layer 4 findings.
+
+MIDS-401 checks whether images are readable without loading complete voxel
+arrays. MIDS-402 compares dimensions within each full image-type label: the
+case-insensitive text after `sub-<ID>_`, rather than only the final acquisition
+suffix. It reports shapes outside the modal shape only when that shape occurs
+in at least 80% of readable images of that type. Dimension, voxel-spacing, and
+spatial-transform policies remain deferred until their benefit and false-
+positive behavior are established from representative converted output.
 
 ## Participants workflow
 

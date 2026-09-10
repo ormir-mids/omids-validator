@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from mids_validator.file_types import is_nifti_file
+
 
 VALID_DATATYPE_DIRECTORIES = frozenset({"mr-anat", "mr-quant", "ct", "rx"})
 
@@ -68,6 +70,23 @@ class DatasetInventory:
         """Return a path relative to the dataset root."""
 
         return str(path.relative_to(self.root))
+
+    def nifti_image_paths(self) -> tuple[Path, ...]:
+        """Return discovered NIfTI images in recognized datatype folders."""
+
+        image_paths: list[Path] = []
+
+        for subject_directory in self.subject_directories():
+            for datatype_directory in self.datatype_directories(
+                subject_directory
+            ):
+                image_paths.extend(
+                    path
+                    for path in self.children(datatype_directory)
+                    if is_nifti_file(path)
+                )
+
+        return tuple(image_paths)
 
 
 def build_inventory(dataset_root: Path) -> DatasetInventory:

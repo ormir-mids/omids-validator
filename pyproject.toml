@@ -7,6 +7,7 @@ name = "mids-validator"
 version = "0.1.0.dev0"
 description = "Validate MIDS-formatted musculoskeletal imaging datasets"
 requires-python = ">=3.10"
+dependencies = ["nibabel>=5.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
