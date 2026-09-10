@@ -6,6 +6,7 @@ from typing import Callable
 
 from mids_validator import __version__
 from mids_validator.inventory import DatasetInventory, build_inventory
+from mids_validator.participants import create_or_populate_participants
 from mids_validator.models import (
     Finding,
     Severity,
@@ -98,9 +99,10 @@ def validate(
 ) -> ValidationReport:
     """Run all implemented layers and return one structured report.
 
-    Participant mutation is intentionally not performed here yet. The flag is
-    retained in the run context so the eventual safe participant workflow can
-    be added without changing the renderer input contract.
+    When requested, participant-table creation/population occurs after the
+    inventory is built and before Layer 5. The inventory snapshot is updated
+    only for a newly created root-level table so Layer 5 sees that action
+    without rescanning the dataset.
     """
 
     requested_path = Path(dataset_path).expanduser()
@@ -124,6 +126,21 @@ def validate(
         )
 
     inventory = build_inventory(requested_path)
+    actions: tuple[dict[str, object], ...] = ()
+    if participants_requested:
+        action = create_or_populate_participants(inventory)
+        actions = (action,)
+        if action["operation"] == "created":
+            created_path = inventory.root / "participants.tsv"
+            inventory = DatasetInventory(
+                root=inventory.root,
+                root_items=tuple(
+                    sorted((*inventory.root_items, created_path), key=str)
+                ),
+                all_items=tuple(
+                    sorted((*inventory.all_items, created_path), key=str)
+                ),
+            )
     findings: list[Finding] = []
     findings.extend(
         _run_rules(
@@ -166,4 +183,5 @@ def validate(
         findings=ordered_findings,
         summary=_summary(ordered_findings),
         inventory=_inventory_summary(inventory),
+        actions=actions,
     )

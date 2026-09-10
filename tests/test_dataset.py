@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mids_validator.inventory import build_inventory
+from mids_validator.inventory import DatasetInventory, build_inventory
 from mids_validator.models import Severity
 from mids_validator.rules.dataset import (
     mids_501_missing_participants_table,
@@ -48,6 +48,25 @@ class DatasetRuleTests(unittest.TestCase):
             self.assertEqual(len(findings), 1)
             self.assertIn("case-variant", findings[0].message)
             self.assertIn("'Participants.tsv'", findings[0].message)
+
+    def test_mids_501_reports_exact_and_case_variant_duplicates(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            exact = root / "participants.tsv"
+            variant = root / "Participants.tsv"
+            exact.write_text("participant_id\n", encoding="utf-8")
+            variant.write_text("participant_id\n", encoding="utf-8")
+            inventory = DatasetInventory(
+                root=root,
+                root_items=(exact, variant),
+                all_items=(exact, variant),
+            )
+
+            findings = mids_501_missing_participants_table(inventory)
+
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0].severity, Severity.ERROR)
+            self.assertIn("duplicate", findings[0].message)
 
     def test_mids_502_accepts_well_formed_table(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

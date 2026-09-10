@@ -357,7 +357,8 @@ The dataset does not contain a root-level file named exactly
 `participants.tsv`. Filename capitalization is significant: a case variant
 such as `Participants.tsv` is reported by this rule, rather than as an
 unexpected root item. If `--participants` is supplied, the validator creates
-the table and reports the action.
+the correctly named table and reports the action. If both the exact file and a
+case variant are present, this rule reports the duplicate filenames.
 
 ### MIDS-502 — Participants table is invalid
 

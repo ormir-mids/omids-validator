@@ -112,10 +112,10 @@ Participant updates preserve existing columns, rows, and values. The validator
 does not delete unmatched rows, overwrite participant information, or rewrite a
 malformed table. Without this option, validation is read-only.
 
-A newly created table contains only the `participant_id` column because subject
-IDs are the only participant information available from the directory
-structure. Age, sex, and other participant attributes are not inferred or
-created.
+A newly created table follows the available BIDS study example and contains
+`participant_id`, `age`, `sex`, and `group` columns. Subject IDs populate only
+`participant_id`; age, sex, group, and other participant attributes are not
+inferred.
 
 ## Reporting conventions
 

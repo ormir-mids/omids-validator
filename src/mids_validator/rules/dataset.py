@@ -23,20 +23,38 @@ class ParticipantTable:
 def mids_501_missing_participants_table(
     inventory: DatasetInventory,
 ) -> list[Finding]:
-    """MIDS-501: require an exactly named ``participants.tsv`` file."""
+    """MIDS-501: require one exactly named ``participants.tsv`` file."""
 
     exact_table_exists = any(
         item.is_file() and item.name == "participants.tsv"
         for item in inventory.root_items
     )
-    if exact_table_exists:
-        return []
-
     case_variant_names = [
         item.name
         for item in inventory.root_items
-        if item.is_file() and item.name.casefold() == "participants.tsv"
+        if item.is_file()
+        and item.name.casefold() == "participants.tsv"
+        and item.name != "participants.tsv"
     ]
+    if exact_table_exists and not case_variant_names:
+        return []
+
+    if exact_table_exists:
+        return [
+            Finding(
+                rule_id="MIDS-501",
+                severity=Severity.ERROR,
+                title="Duplicate participants table filenames",
+                message=(
+                    "Dataset contains the correctly named participants.tsv "
+                    "and case-variant file(s): "
+                    + ", ".join(repr(name) for name in case_variant_names)
+                    + ". Remove the duplicate file(s)."
+                ),
+                path="participants.tsv",
+            )
+        ]
+
     message = "Dataset does not contain an exactly named participants.tsv file."
     if case_variant_names:
         names = ", ".join(repr(name) for name in case_variant_names)

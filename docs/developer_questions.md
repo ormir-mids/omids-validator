@@ -69,3 +69,18 @@ create a matching subject/session directory structure below `derivatives`.
 - Should this be part of `--participants`, or a separate explicit option?
 - Should only subject/session folders be mirrored, or datatype folders as well?
 - Should existing derivative content always be left untouched?
+
+## 7. What is the required participants.tsv column structure?
+
+The MIDS standard does not currently provide an example `participants.tsv`,
+so the required columns and their meanings are unclear. The validator's
+creation workflow currently follows the available BIDS study example, whose
+header is:
+
+```text
+participant_id	age	sex	group
+```
+
+Only `participant_id` can be obtained from the MIDS directory structure; the
+other columns are created blank. Should MIDS require these four columns, allow
+arbitrary study-specific columns, or define a different minimum schema?
