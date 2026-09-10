@@ -10,11 +10,17 @@ The original prototype remains in `validator.py`. A modular replacement is
 being developed incrementally under `src/mids_validator/`. The new package is a
 scaffold and is not yet the working command-line tool.
 
-## Intended command
+## Command
 
 ```text
-mids-validator DATASET [--participants] [--inspect-images] [--json REPORT]
+mids-validator DATASET [-p] [-i] [-o OUTPUT_DIR]
 ```
+
+Each run creates a timestamped `mids_reports_YYYY-MM-DD_HHMMSS` directory
+under `OUTPUT_DIR` (the current working directory by default) and writes
+`report.json`. The command prints a concise summary and returns status `1`
+when validation finds an error, `2` when it cannot create the report, and `0`
+otherwise.
 
 ## Code layout
 
