@@ -231,6 +231,12 @@ def validate_dataset(dataset_path: Path) -> list[Finding]:
     """Run Layer 5 rules with one inventory scan and one table read."""
 
     inventory = build_inventory(dataset_path)
+    return validate_dataset_inventory(inventory)
+
+
+def validate_dataset_inventory(inventory: DatasetInventory) -> list[Finding]:
+    """Run Layer 5 rules against an inventory supplied by the coordinator."""
+
     findings = mids_501_missing_participants_table(inventory)
     participant_table, table_findings = _parse_participants_table(inventory)
     findings.extend(table_findings)

@@ -1,5 +1,7 @@
-"""Package entry point for ``python -m mids_validator``.
+"""Package entry point for ``python -m mids_validator``."""
 
-The executable call will be connected after the first end-to-end validation
-slice is implemented and reviewed.
-"""
+from mids_validator.cli import main
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

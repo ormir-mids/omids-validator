@@ -9,6 +9,9 @@ description = "Validate MIDS-formatted musculoskeletal imaging datasets"
 requires-python = ">=3.10"
 dependencies = ["nibabel>=5.0"]
 
+[project.scripts]
+mids-validator = "mids_validator.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
