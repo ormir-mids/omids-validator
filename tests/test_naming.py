@@ -104,10 +104,9 @@ class NamingRuleTests(unittest.TestCase):
             lowercase_path = datatype / "sub-01_t1.nii.gz"
             uppercase_json_path = datatype / "sub-01_T1.JSON"
             lowercase_json_path = datatype / "sub-01_t1.json"
-            inventory = DatasetInventory(
-                root=root,
-                root_items=(subject,),
-                all_items=(
+            inventory = DatasetInventory.from_items(
+                root,
+                (
                     subject,
                     datatype,
                     uppercase_path,

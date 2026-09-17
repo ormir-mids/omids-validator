@@ -12,5 +12,6 @@ def render(report: ValidationReport, report_directory: str) -> str:
         f"{summary['error']} error(s), "
         f"{summary['warning']} warning(s), "
         f"{summary['info']} info finding(s).\n"
+        f"Markdown report: {report_directory}/report.md\n"
         f"JSON report: {report_directory}/report.json"
     )

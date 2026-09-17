@@ -1,14 +1,18 @@
 """Tests for acquisition-profile loading and image-suffix interpretation."""
 
+from copy import deepcopy
 import tempfile
 import unittest
 from pathlib import Path
 
 from mids_validator.acquisition_profiles import (
+    MetadataRequirementsError,
     acquisition_profile_for_suffix,
     acquisition_profiles,
     image_suffix,
+    load_metadata_requirements,
     metadata_fields_for_suffix,
+    validate_metadata_requirements,
 )
 
 
@@ -71,6 +75,52 @@ class AcquisitionProfileTests(unittest.TestCase):
             megre_fields["EchoTime"]["expected_json_type"],
             "array",
         )
+
+    def test_metadata_requirements_reject_unknown_parent_profile(self) -> None:
+        requirements = deepcopy(load_metadata_requirements())
+        requirements["profiles"]["mri_dess"][
+            "inherits_json_fields_from"
+        ] = "missing_profile"
+
+        with self.assertRaisesRegex(
+            MetadataRequirementsError,
+            "inherits from unknown profile",
+        ):
+            validate_metadata_requirements(requirements)
+
+    def test_metadata_requirements_reject_inheritance_cycle(self) -> None:
+        requirements = deepcopy(load_metadata_requirements())
+        requirements["profiles"]["mri_common"][
+            "inherits_json_fields_from"
+        ] = "mri_dess"
+
+        with self.assertRaisesRegex(
+            MetadataRequirementsError,
+            "inheritance contains a cycle",
+        ):
+            validate_metadata_requirements(requirements)
+
+    def test_metadata_requirements_reject_duplicate_suffix(self) -> None:
+        requirements = deepcopy(load_metadata_requirements())
+        requirements["profiles"]["ct"]["suffixes"].append("DESS")
+
+        with self.assertRaisesRegex(
+            MetadataRequirementsError,
+            "assigned to both",
+        ):
+            validate_metadata_requirements(requirements)
+
+    def test_metadata_requirements_reject_unknown_requirement_status(self) -> None:
+        requirements = deepcopy(load_metadata_requirements())
+        requirements["profiles"]["ct"]["json_fields"][0][
+            "requirement_status"
+        ] = "required"
+
+        with self.assertRaisesRegex(
+            MetadataRequirementsError,
+            "requirement_status must be one of",
+        ):
+            validate_metadata_requirements(requirements)
 
 
 if __name__ == "__main__":

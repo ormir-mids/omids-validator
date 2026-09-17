@@ -4,7 +4,7 @@ import csv
 from pathlib import Path
 
 from mids_validator.inventory import DatasetInventory
-from mids_validator.rules.dataset import _parse_participants_table
+from mids_validator.participant_table import read_participants_table
 
 
 # These are the columns in the supplied BIDS study example. Only the first
@@ -89,8 +89,8 @@ def create_or_populate_participants(inventory: DatasetInventory) -> dict[str, ob
             "added_participant_ids": subject_ids,
         }
 
-    table, findings = _parse_participants_table(inventory)
-    if findings or table is None:
+    table, problems = read_participants_table(inventory)
+    if problems or table is None:
         return {
             "operation": "skipped",
             "path": "participants.tsv",

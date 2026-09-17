@@ -1,11 +1,16 @@
 """Tests for shared finding and report data structures."""
 
 import unittest
+from importlib.metadata import version
 
+from mids_validator import __version__
 from mids_validator.models import Finding, Severity
 
 
 class FindingTests(unittest.TestCase):
+    def test_package_version_comes_from_distribution_metadata(self) -> None:
+        self.assertEqual(__version__, version("mids-validator"))
+
     def test_severity_values_are_json_friendly_strings(self) -> None:
         self.assertEqual(Severity.ERROR.value, "error")
         self.assertEqual(Severity.WARNING.value, "warning")

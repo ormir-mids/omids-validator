@@ -219,31 +219,9 @@ def validate(
         actions = (action,)
         if action["operation"] == "created":
             created_path = inventory.root / "participants.tsv"
-            inventory = DatasetInventory(
-                root=inventory.root,
-                root_items=tuple(
-                    sorted((*inventory.root_items, created_path), key=str)
-                ),
-                all_items=tuple(
-                    sorted((*inventory.all_items, created_path), key=str)
-                ),
-            )
+            inventory = inventory.with_added_item(created_path)
     findings: list[Finding] = []
-    findings.extend(
-        _run_rules(
-            inventory,
-            (
-                structure.mids_002_unexpected_root_items,
-                structure.mids_003_invalid_subject_identifiers,
-                structure.mids_004_invalid_session_identifiers,
-                structure.mids_005_mixed_subject_structure,
-                structure.mids_006_unrecognized_datatype_items,
-                structure.mids_007_empty_datatype_directories,
-                structure.mids_008_subjects_without_imaging_data,
-                structure.mids_009_operating_system_artifacts,
-            ),
-        )
-    )
+    findings.extend(_run_rules(inventory, structure.STRUCTURE_RULES))
     findings.extend(_run_rules(inventory, naming.NAMING_RULES))
     findings.extend(_run_rules(inventory, sidecars.SIDECAR_RULES))
     findings.extend(_run_rules(inventory, metadata.METADATA_RULES))

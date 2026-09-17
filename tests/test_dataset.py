@@ -58,11 +58,7 @@ class DatasetRuleTests(unittest.TestCase):
             variant = root / "Participants.tsv"
             exact.write_text("participant_id\n", encoding="utf-8")
             variant.write_text("participant_id\n", encoding="utf-8")
-            inventory = DatasetInventory(
-                root=root,
-                root_items=(exact, variant),
-                all_items=(exact, variant),
-            )
+            inventory = DatasetInventory.from_items(root, (exact, variant))
 
             findings = mids_501_conflicting_participants_table_filenames(inventory)
 

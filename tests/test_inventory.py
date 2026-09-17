@@ -45,6 +45,22 @@ class DatasetInventoryTests(unittest.TestCase):
                 "sub-02/ses-01/ct",
             )
 
+    def test_added_item_updates_children_without_mutating_snapshot(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            (root / "sub-01").mkdir()
+            inventory = build_inventory(root)
+            participant_table = inventory.root / "participants.tsv"
+
+            updated_inventory = inventory.with_added_item(participant_table)
+
+            self.assertNotIn(participant_table, inventory.root_items)
+            self.assertIn(participant_table, updated_inventory.root_items)
+            self.assertEqual(
+                updated_inventory.children(updated_inventory.root),
+                updated_inventory.root_items,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

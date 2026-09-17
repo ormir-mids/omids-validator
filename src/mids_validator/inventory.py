@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
+from typing import Iterable, Mapping
 
 from mids_validator.file_types import is_nifti_file
 
@@ -16,13 +18,43 @@ class DatasetInventory:
     root: Path
     root_items: tuple[Path, ...]
     all_items: tuple[Path, ...]
+    _children_by_directory: Mapping[Path, tuple[Path, ...]]
+
+    @classmethod
+    def from_items(
+        cls,
+        root: Path,
+        items: Iterable[Path],
+    ) -> "DatasetInventory":
+        """Create an inventory and index each path by its direct parent."""
+
+        sorted_items = tuple(sorted(items, key=lambda path: str(path)))
+        children_lists: dict[Path, list[Path]] = {}
+        for item in sorted_items:
+            children_lists.setdefault(item.parent, []).append(item)
+
+        children_by_directory = {
+            directory: tuple(children)
+            for directory, children in children_lists.items()
+        }
+        return cls(
+            root=root,
+            root_items=children_by_directory.get(root, ()),
+            all_items=sorted_items,
+            _children_by_directory=MappingProxyType(children_by_directory),
+        )
 
     def children(self, directory: Path) -> tuple[Path, ...]:
         """Return already-discovered direct children of ``directory``."""
 
-        return tuple(
-            item for item in self.all_items if item.parent == directory
-        )
+        return self._children_by_directory.get(directory, ())
+
+    def with_added_item(self, path: Path) -> "DatasetInventory":
+        """Return a new inventory snapshot containing one newly created path."""
+
+        if path in self.all_items:
+            return self
+        return DatasetInventory.from_items(self.root, (*self.all_items, path))
 
     def subject_directories(self) -> tuple[Path, ...]:
         """Return root directories that declare themselves as subjects."""
@@ -94,10 +126,4 @@ def build_inventory(dataset_root: Path) -> DatasetInventory:
 
     root = dataset_root.resolve()
     all_items = tuple(sorted(root.rglob("*"), key=lambda path: str(path)))
-    root_items = tuple(item for item in all_items if item.parent == root)
-
-    return DatasetInventory(
-        root=root,
-        root_items=root_items,
-        all_items=all_items,
-    )
+    return DatasetInventory.from_items(root, all_items)

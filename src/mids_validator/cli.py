@@ -1,17 +1,18 @@
 """Command-line entry point for the validation coordinator."""
 
 import argparse
+import sys
 from datetime import datetime
 from pathlib import Path
 
-from mids_validator.reporters import json_report, terminal
+from mids_validator.reporters import json_report, markdown_report, terminal
 from mids_validator.rules_document import write_rules_markdown
 from mids_validator.validator import validate
 
 
 VALIDATION_ERROR = 1
 SETUP_ERROR = 2
-RULES_DOCUMENT_NAME = "MIDS_validator_rules.md"
+RULES_DOCUMENT_NAME = "mids_validator_rules.md"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -52,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--rules",
         action="store_true",
-        help="write MIDS_validator_rules.md and exit without validating a dataset",
+        help="write mids_validator_rules.md and exit without validating a dataset",
     )
     return parser
 
@@ -107,22 +108,51 @@ def _create_report_directory(parent: Path) -> Path:
             suffix += 1
 
 
+def _report_destination_is_inside_dataset(
+    dataset_path: Path,
+    output_directory: Path,
+) -> bool:
+    """Return whether reports would be written inside the dataset."""
+
+    resolved_dataset = dataset_path.expanduser().resolve()
+    resolved_output = output_directory.expanduser().resolve()
+    return resolved_output == resolved_dataset or resolved_output.is_relative_to(
+        resolved_dataset
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run dataset validation or generate the rule catalogue document."""
 
     parser = build_parser()
-    args = parser.parse_args(argv)
+    arguments = sys.argv[1:] if argv is None else argv
+    if not arguments:
+        parser.print_help()
+        return 0
+
+    args = parser.parse_args(arguments)
     _validate_arguments(parser, args)
 
     if args.rules:
         try:
             rules_path = _write_rules_document(args.output_dir)
         except (OSError, ValueError) as error:
-            print(f"mids-validator: unable to write rules document: {error}")
+            print(
+                f"mids-validator: unable to write rules document: {error}",
+                file=sys.stderr,
+            )
             return SETUP_ERROR
 
-        print(f"Rules document: {rules_path}")
+        print(f"mids validator rules created at {rules_path}")
         return 0
+
+    if _report_destination_is_inside_dataset(args.dataset, args.output_dir):
+        print(
+            "mids-validator: report output must be outside the dataset; "
+            "choose another directory with --output-dir",
+            file=sys.stderr,
+        )
+        return SETUP_ERROR
 
     try:
         report = validate(
@@ -130,10 +160,19 @@ def main(argv: list[str] | None = None) -> int:
             inspect_images=args.inspect_images,
             participants_requested=args.participants,
         )
+    except (OSError, ValueError) as error:
+        print(
+            f"mids-validator: unable to validate dataset: {error}",
+            file=sys.stderr,
+        )
+        return SETUP_ERROR
+
+    try:
         report_directory = _create_report_directory(args.output_dir)
         json_report.write(report, report_directory / "report.json")
+        markdown_report.write(report, report_directory / "report.md")
     except (OSError, ValueError) as error:
-        print(f"mids-validator: unable to write report: {error}")
+        print(f"mids-validator: unable to write report: {error}", file=sys.stderr)
         return SETUP_ERROR
 
     print(terminal.render(report, str(report_directory)))

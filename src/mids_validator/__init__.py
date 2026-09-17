@@ -1,3 +1,11 @@
 """Validate MIDS-formatted musculoskeletal imaging datasets."""
 
-__version__ = "0.1.0.dev0"
+from importlib.metadata import PackageNotFoundError, version
+
+
+try:
+    __version__ = version("mids-validator")
+except PackageNotFoundError:
+    # Source-only use has no installed distribution metadata. Release versions
+    # are defined only in pyproject.toml.
+    __version__ = "0+unknown"

@@ -58,30 +58,3 @@ class ValidationReport:
     summary: dict[str, int]
     inventory: dict[str, Any]
     actions: tuple[dict[str, Any], ...] = ()
-
-    def as_dict(self) -> dict[str, Any]:
-        """Return a renderer-ready, JSON-compatible representation."""
-
-        return {
-            "schema_version": self.schema_version,
-            "validator_version": self.validator_version,
-            "dataset_root": self.dataset_root,
-            "run": {
-                "timestamp": self.run.timestamp,
-                "inspect_images": self.run.inspect_images,
-                "participants_requested": self.run.participants_requested,
-            },
-            "findings": [
-                {
-                    "rule_id": finding.rule_id,
-                    "severity": finding.severity.value,
-                    "title": finding.title,
-                    "message": finding.message,
-                    "path": finding.path,
-                }
-                for finding in self.findings
-            ],
-            "summary": dict(self.summary),
-            "inventory": dict(self.inventory),
-            "actions": [dict(action) for action in self.actions],
-        }

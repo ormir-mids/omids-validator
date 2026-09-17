@@ -3,8 +3,12 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from mids_validator.models import Finding, Severity
+from mids_validator.rules import structure
 from mids_validator.rules.structure import validate_structure
+from mids_validator.validator import validate
 
 
 class StructureRuleTests(unittest.TestCase):
@@ -96,6 +100,27 @@ class StructureRuleTests(unittest.TestCase):
 
         self.assertEqual(len(artifact_findings), 1)
         self.assertEqual(artifact_findings[0].path, "sub-01/.DS_Store")
+
+    def test_coordinator_uses_the_shared_structure_rule_registry(self) -> None:
+        def registered_rule(_inventory: object) -> list[Finding]:
+            return [
+                Finding(
+                    rule_id="MIDS-009",
+                    severity=Severity.WARNING,
+                    title="Registry test",
+                    message="The coordinator ran the registered rule.",
+                )
+            ]
+
+        with patch.object(structure, "STRUCTURE_RULES", (registered_rule,)):
+            report = validate(self.root, timestamp="now")
+
+        self.assertTrue(
+            any(
+                finding.message == "The coordinator ran the registered rule."
+                for finding in report.findings
+            )
+        )
 
 
 if __name__ == "__main__":
