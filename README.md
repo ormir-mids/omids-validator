@@ -33,8 +33,6 @@ otherwise.
 - `src/mids_validator/rules/`: contains one module for each validation layer.
 - `src/mids_validator/reporters/`: formats terminal and JSON output.
 - `tests/`: contains automated tests organized by layer.
-- `docs/`: contains the rule catalogue, conventions, future ideas, and questions
-  for the ORMIR-MIDS developers.
 - `sample_data/`: contains current development data.
 - `sources/`: contains reference material.
 

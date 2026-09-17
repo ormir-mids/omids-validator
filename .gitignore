@@ -1,6 +1,9 @@
 # Local or potentially sensitive datasets
 sample_data/
 
+# Local developer records and generated review artifacts
+developer/
+
 # Python-generated files
 __pycache__/
 *.py[cod]
