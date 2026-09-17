@@ -14,7 +14,8 @@ from mids_validator.inventory import (
     DatasetInventory,
     build_inventory,
 )
-from mids_validator.models import Finding, Severity
+from mids_validator.models import Finding
+from mids_validator.rule_catalog import finding_for_rule
 
 
 SUBJECT_PATTERN = re.compile(r"sub-[A-Za-z0-9]+")
@@ -50,10 +51,8 @@ def mids_001_invalid_dataset_path(dataset_path: Path) -> list[Finding]:
             return []
 
     return [
-        Finding(
-            rule_id="MIDS-001",
-            severity=Severity.ERROR,
-            title="Invalid dataset path",
+        finding_for_rule(
+            "MIDS-001",
             message=message,
             path=str(path),
         )
@@ -87,10 +86,8 @@ def mids_002_unexpected_root_items(
             and not _is_operating_system_artifact(item)
         ):
             findings.append(
-                Finding(
-                    rule_id="MIDS-002",
-                    severity=Severity.ERROR,
-                    title="Unexpected item in dataset root",
+                finding_for_rule(
+                    "MIDS-002",
                     message=(
                         "Dataset root items must be subject directories or "
                         "participants.tsv."
@@ -108,10 +105,8 @@ def mids_003_invalid_subject_identifiers(
     """MIDS-003: validate subject directory identifiers."""
 
     return [
-        Finding(
-            rule_id="MIDS-003",
-            severity=Severity.ERROR,
-            title="Invalid subject identifier",
+        finding_for_rule(
+            "MIDS-003",
             message="Subject directory must follow sub-<alphanumeric>.",
             path=inventory.relative_path(subject),
         )
@@ -131,10 +126,8 @@ def mids_004_invalid_session_identifiers(
         for session in inventory.session_directories(subject):
             if SESSION_PATTERN.fullmatch(session.name) is None:
                 findings.append(
-                    Finding(
-                        rule_id="MIDS-004",
-                        severity=Severity.ERROR,
-                        title="Invalid session identifier",
+                    finding_for_rule(
+                        "MIDS-004",
                         message="Session directory must follow ses-<alphanumeric>.",
                         path=inventory.relative_path(session),
                     )
@@ -160,10 +153,8 @@ def mids_005_mixed_subject_structure(
 
         if sessions and direct_datatypes:
             findings.append(
-                Finding(
-                    rule_id="MIDS-005",
-                    severity=Severity.ERROR,
-                    title="Mixed session and direct-datatype structure",
+                finding_for_rule(
+                    "MIDS-005",
                     message=(
                         "Subject must use session directories or direct "
                         "datatype directories, not both."
@@ -194,10 +185,8 @@ def mids_006_unrecognized_datatype_items(
             )
             if not allowed_subject_item:
                 findings.append(
-                    Finding(
-                        rule_id="MIDS-006",
-                        severity=Severity.ERROR,
-                        title="Unrecognized datatype item",
+                    finding_for_rule(
+                        "MIDS-006",
                         message=(
                             "Only session or recognized datatype directories "
                             "are permitted at this level."
@@ -214,10 +203,8 @@ def mids_006_unrecognized_datatype_items(
                 )
                 if not allowed_session_item:
                     findings.append(
-                        Finding(
-                            rule_id="MIDS-006",
-                            severity=Severity.ERROR,
-                            title="Unrecognized datatype item",
+                        finding_for_rule(
+                            "MIDS-006",
                             message=(
                                 "Only recognized datatype directories are "
                                 "permitted inside a session."
@@ -243,10 +230,8 @@ def mids_007_empty_datatype_directories(
             )
             if not contains_image:
                 findings.append(
-                    Finding(
-                        rule_id="MIDS-007",
-                        severity=Severity.WARNING,
-                        title="Empty datatype directory",
+                    finding_for_rule(
+                        "MIDS-007",
                         message="Datatype directory contains no NIfTI images.",
                         path=inventory.relative_path(datatype),
                     )
@@ -272,10 +257,8 @@ def mids_008_subjects_without_imaging_data(
 
         if not contains_image:
             findings.append(
-                Finding(
-                    rule_id="MIDS-008",
-                    severity=Severity.WARNING,
-                    title="Subject contains no recognized imaging data",
+                finding_for_rule(
+                    "MIDS-008",
                     message=(
                         "Subject contains no NIfTI images in recognized "
                         "datatype directories."
@@ -293,10 +276,8 @@ def mids_009_operating_system_artifacts(
     """MIDS-009: report common operating-system artifacts anywhere in data."""
 
     return [
-        Finding(
-            rule_id="MIDS-009",
-            severity=Severity.WARNING,
-            title="Operating-system artifact present",
+        finding_for_rule(
+            "MIDS-009",
             message="Remove operating-system artifacts before sharing data.",
             path=inventory.relative_path(item),
         )

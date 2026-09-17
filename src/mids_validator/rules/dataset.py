@@ -9,7 +9,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from mids_validator.inventory import DatasetInventory, build_inventory
-from mids_validator.models import Finding, Severity
+from mids_validator.models import Finding
+from mids_validator.rule_catalog import finding_for_rule
 
 
 @dataclass(frozen=True)
@@ -20,10 +21,10 @@ class ParticipantTable:
     participant_ids: frozenset[str]
 
 
-def mids_501_missing_participants_table(
+def _participants_table_names(
     inventory: DatasetInventory,
-) -> list[Finding]:
-    """MIDS-501: require one exactly named ``participants.tsv`` file."""
+) -> tuple[bool, list[str]]:
+    """Return exact-table presence and differently cased table names."""
 
     exact_table_exists = any(
         item.is_file() and item.name == "participants.tsv"
@@ -36,24 +37,44 @@ def mids_501_missing_participants_table(
         and item.name.casefold() == "participants.tsv"
         and item.name != "participants.tsv"
     ]
-    if exact_table_exists and not case_variant_names:
+    return exact_table_exists, case_variant_names
+
+
+def mids_501_conflicting_participants_table_filenames(
+    inventory: DatasetInventory,
+) -> list[Finding]:
+    """MIDS-501: report exact and case-variant table conflicts."""
+
+    exact_table_exists, case_variant_names = _participants_table_names(
+        inventory
+    )
+    if not exact_table_exists or not case_variant_names:
         return []
 
+    return [
+        finding_for_rule(
+            "MIDS-501",
+            message=(
+                "Dataset contains the correctly named participants.tsv "
+                "and case-variant file(s): "
+                + ", ".join(repr(name) for name in case_variant_names)
+                + "."
+            ),
+            path="participants.tsv",
+        )
+    ]
+
+
+def mids_504_missing_participants_table(
+    inventory: DatasetInventory,
+) -> list[Finding]:
+    """MIDS-504: require one exactly named ``participants.tsv`` file."""
+
+    exact_table_exists, case_variant_names = _participants_table_names(
+        inventory
+    )
     if exact_table_exists:
-        return [
-            Finding(
-                rule_id="MIDS-501",
-                severity=Severity.ERROR,
-                title="Duplicate participants table filenames",
-                message=(
-                    "Dataset contains the correctly named participants.tsv "
-                    "and case-variant file(s): "
-                    + ", ".join(repr(name) for name in case_variant_names)
-                    + ". Remove the duplicate file(s)."
-                ),
-                path="participants.tsv",
-            )
-        ]
+        return []
 
     message = "Dataset does not contain an exactly named participants.tsv file."
     if case_variant_names:
@@ -61,10 +82,8 @@ def mids_501_missing_participants_table(
         message += f" Found case-variant file(s): {names}; rename exactly."
 
     return [
-        Finding(
-            rule_id="MIDS-501",
-            severity=Severity.WARNING,
-            title="Participants table is absent",
+        finding_for_rule(
+            "MIDS-504",
             message=message,
             path="participants.tsv",
         )
@@ -92,10 +111,8 @@ def _parse_participants_table(
             rows = list(csv.reader(table_file, delimiter="\t"))
     except (OSError, UnicodeDecodeError, csv.Error) as error:
         return None, [
-            Finding(
-                rule_id="MIDS-502",
-                severity=Severity.ERROR,
-                title="Participants table is invalid",
+            finding_for_rule(
+                "MIDS-502",
                 message=f"participants.tsv could not be read as UTF-8 TSV: {error}.",
                 path=inventory.relative_path(table_path),
             )
@@ -108,10 +125,8 @@ def _parse_participants_table(
     ]
     if not nonempty_rows:
         return None, [
-            Finding(
-                rule_id="MIDS-502",
-                severity=Severity.ERROR,
-                title="Participants table is invalid",
+            finding_for_rule(
+                "MIDS-502",
                 message="participants.tsv is empty and has no header row.",
                 path=inventory.relative_path(table_path),
             )
@@ -121,10 +136,8 @@ def _parse_participants_table(
     participant_id_count = header.count("participant_id")
     if participant_id_count != 1:
         return None, [
-            Finding(
-                rule_id="MIDS-502",
-                severity=Severity.ERROR,
-                title="Participants table is invalid",
+            finding_for_rule(
+                "MIDS-502",
                 message=(
                     "Header row must contain exactly one participant_id column; "
                     f"found {participant_id_count}."
@@ -139,10 +152,8 @@ def _parse_participants_table(
     for line_number, row in nonempty_rows[1:]:
         if len(row) != len(header):
             findings.append(
-                Finding(
-                    rule_id="MIDS-502",
-                    severity=Severity.ERROR,
-                    title="Participants table is invalid",
+                finding_for_rule(
+                    "MIDS-502",
                     message=(
                         f"Row {line_number} has {len(row)} field(s), but the "
                         f"header has {len(header)}."
@@ -155,20 +166,16 @@ def _parse_participants_table(
         participant_id = row[participant_id_index]
         if not participant_id.strip():
             findings.append(
-                Finding(
-                    rule_id="MIDS-502",
-                    severity=Severity.ERROR,
-                    title="Participants table is invalid",
+                finding_for_rule(
+                    "MIDS-502",
                     message=f"Row {line_number} has an empty participant_id.",
                     path=inventory.relative_path(table_path),
                 )
             )
         elif participant_id in participant_ids:
             findings.append(
-                Finding(
-                    rule_id="MIDS-502",
-                    severity=Severity.ERROR,
-                    title="Participants table is invalid",
+                finding_for_rule(
+                    "MIDS-502",
                     message=(
                         f"Row {line_number} duplicates participant_id "
                         f"{participant_id!r}."
@@ -216,10 +223,8 @@ def mids_503_participant_inventory_mismatch(
     findings: list[Finding] = []
     for subject_id in missing_from_table:
         findings.append(
-            Finding(
-                rule_id="MIDS-503",
-                severity=Severity.WARNING,
-                title="Participant inventory mismatch",
+            finding_for_rule(
+                "MIDS-503",
                 message=(
                     f"Subject directory {subject_id!r} has no matching "
                     "participant_id row."
@@ -230,10 +235,8 @@ def mids_503_participant_inventory_mismatch(
 
     for participant_id in missing_directory:
         findings.append(
-            Finding(
-                rule_id="MIDS-503",
-                severity=Severity.WARNING,
-                title="Participant inventory mismatch",
+            finding_for_rule(
+                "MIDS-503",
                 message=(
                     f"participant_id {participant_id!r} has no matching "
                     "subject directory."
@@ -255,7 +258,8 @@ def validate_dataset(dataset_path: Path) -> list[Finding]:
 def validate_dataset_inventory(inventory: DatasetInventory) -> list[Finding]:
     """Run Layer 5 rules against an inventory supplied by the coordinator."""
 
-    findings = mids_501_missing_participants_table(inventory)
+    findings = mids_501_conflicting_participants_table_filenames(inventory)
+    findings.extend(mids_504_missing_participants_table(inventory))
     participant_table, table_findings = _parse_participants_table(inventory)
     findings.extend(table_findings)
 

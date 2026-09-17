@@ -10,7 +10,8 @@ from typing import Callable
 
 from mids_validator.file_types import is_json_file, is_nifti_file, nifti_stem
 from mids_validator.inventory import DatasetInventory, build_inventory
-from mids_validator.models import Finding, Severity
+from mids_validator.models import Finding
+from mids_validator.rule_catalog import finding_for_rule
 
 
 def _image_stem_for_json_sidecar(json_path: Path) -> str:
@@ -54,10 +55,8 @@ def mids_201_missing_primary_json(inventory: DatasetInventory) -> list[Finding]:
                 expected_json_name = f"{image_stem}.json"
                 if expected_json_name.casefold() not in json_names:
                     findings.append(
-                        Finding(
-                            rule_id="MIDS-201",
-                            severity=Severity.ERROR,
-                            title="Missing primary JSON sidecar",
+                        finding_for_rule(
+                            "MIDS-201",
                             message=(
                                 "NIfTI image requires a primary JSON sidecar "
                                 f"named {expected_json_name}."
@@ -103,18 +102,12 @@ def mids_202_and_203_malformed_json_sidecars(
 
                 if is_optional:
                     rule_id = "MIDS-203"
-                    severity = Severity.WARNING
-                    title = "Malformed optional JSON sidecar"
                 else:
                     rule_id = "MIDS-202"
-                    severity = Severity.ERROR
-                    title = "Malformed primary JSON sidecar"
 
                 findings.append(
-                    Finding(
-                        rule_id=rule_id,
-                        severity=severity,
-                        title=title,
+                    finding_for_rule(
+                        rule_id,
                         message=problem,
                         path=inventory.relative_path(json_path),
                     )
@@ -130,16 +123,8 @@ def mids_204_and_205_missing_optional_sidecars(
 
     findings: list[Finding] = []
     optional_sidecars = (
-        (
-            "patient",
-            "MIDS-204",
-            "Optional patient JSON sidecar is absent",
-        ),
-        (
-            "extra",
-            "MIDS-205",
-            "Optional extra JSON sidecar is absent",
-        ),
+        ("patient", "MIDS-204"),
+        ("extra", "MIDS-205"),
     )
 
     for subject_directory in inventory.subject_directories():
@@ -161,16 +146,14 @@ def mids_204_and_205_missing_optional_sidecars(
                 if image_stem is None:
                     continue
 
-                for qualifier, rule_id, title in optional_sidecars:
+                for qualifier, rule_id in optional_sidecars:
                     expected_json_name = f"{image_stem}_{qualifier}.json"
                     if expected_json_name.casefold() in json_names:
                         continue
 
                     findings.append(
-                        Finding(
-                            rule_id=rule_id,
-                            severity=Severity.INFO,
-                            title=title,
+                        finding_for_rule(
+                            rule_id,
                             message=(
                                 "Optional JSON sidecar is absent; expected "
                                 f"{expected_json_name}."
@@ -228,10 +211,8 @@ def mids_206_orphan_json_sidecars(
                 orphaned_names = ", ".join(path.name for path in json_paths)
 
                 findings.append(
-                    Finding(
-                        rule_id="MIDS-206",
-                        severity=Severity.WARNING,
-                        title="Orphan JSON sidecar",
+                    finding_for_rule(
+                        "MIDS-206",
                         message=(
                             "JSON sidecars have no corresponding NIfTI image: "
                             f"{orphaned_names}."
@@ -275,10 +256,8 @@ def mids_207_invalid_extra_json_structure(
 
                 if not has_expected_keys:
                     findings.append(
-                        Finding(
-                            rule_id="MIDS-207",
-                            severity=Severity.WARNING,
-                            title="Invalid extra JSON structure",
+                        finding_for_rule(
+                            "MIDS-207",
                             message=(
                                 "Extra JSON sidecar must be an object with "
                                 "exactly the top-level keys meta and extra."

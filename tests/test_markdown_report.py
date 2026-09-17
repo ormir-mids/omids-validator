@@ -86,7 +86,7 @@ class MarkdownReportTests(unittest.TestCase):
                 Finding("MIDS-101", Severity.WARNING, "Naming", "warning", "b"),
                 Finding("MIDS-007", Severity.ERROR, "Structure", "error", "a"),
                 Finding("MIDS-002", Severity.ERROR, "Structure", "error", "c"),
-                Finding("MIDS-501", Severity.INFO, "Participants", "info", "d"),
+                Finding("MIDS-204", Severity.INFO, "Sidecars", "info", "d"),
             ),
             summary={"error": 2, "warning": 1, "info": 1},
             inventory={},
@@ -103,7 +103,7 @@ class MarkdownReportTests(unittest.TestCase):
                     ("MIDS-101", Severity.WARNING, "Naming", report.findings[0]),
                     ("MIDS-007", Severity.ERROR, "Structure", report.findings[1]),
                     ("MIDS-002", Severity.ERROR, "Structure", report.findings[2]),
-                    ("MIDS-501", Severity.INFO, "Participants", report.findings[3]),
+                    ("MIDS-204", Severity.INFO, "Sidecars", report.findings[3]),
                 )
             }
         )

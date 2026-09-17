@@ -7,8 +7,9 @@ from pathlib import Path
 from mids_validator.inventory import DatasetInventory, build_inventory
 from mids_validator.models import Severity
 from mids_validator.rules.dataset import (
-    mids_501_missing_participants_table,
+    mids_501_conflicting_participants_table_filenames,
     mids_502_invalid_participants_table,
+    mids_504_missing_participants_table,
     validate_dataset,
 )
 
@@ -16,36 +17,37 @@ from mids_validator.rules.dataset import (
 class DatasetRuleTests(unittest.TestCase):
     """Test the initial participants-table presence rule."""
 
-    def test_mids_501_reports_absent_participants_table(self) -> None:
+    def test_mids_504_reports_absent_participants_table(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
 
-            findings = mids_501_missing_participants_table(build_inventory(root))
+            findings = mids_504_missing_participants_table(build_inventory(root))
 
             self.assertEqual(len(findings), 1)
             finding = findings[0]
-            self.assertEqual(finding.rule_id, "MIDS-501")
+            self.assertEqual(finding.rule_id, "MIDS-504")
             self.assertEqual(finding.severity, Severity.WARNING)
             self.assertEqual(finding.path, "participants.tsv")
 
-    def test_mids_501_accepts_exact_participants_table_name(self) -> None:
+    def test_mids_504_accepts_exact_participants_table_name(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             (root / "participants.tsv").touch()
 
             self.assertEqual(
-                mids_501_missing_participants_table(build_inventory(root)),
+                mids_504_missing_participants_table(build_inventory(root)),
                 [],
             )
 
-    def test_mids_501_reports_case_variant_participants_table(self) -> None:
+    def test_mids_504_reports_case_variant_participants_table(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             (root / "Participants.tsv").touch()
 
-            findings = mids_501_missing_participants_table(build_inventory(root))
+            findings = mids_504_missing_participants_table(build_inventory(root))
 
             self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0].rule_id, "MIDS-504")
             self.assertIn("case-variant", findings[0].message)
             self.assertIn("'Participants.tsv'", findings[0].message)
 
@@ -62,11 +64,12 @@ class DatasetRuleTests(unittest.TestCase):
                 all_items=(exact, variant),
             )
 
-            findings = mids_501_missing_participants_table(inventory)
+            findings = mids_501_conflicting_participants_table_filenames(inventory)
 
             self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0].rule_id, "MIDS-501")
             self.assertEqual(findings[0].severity, Severity.ERROR)
-            self.assertIn("duplicate", findings[0].message)
+            self.assertIn("case-variant", findings[0].message)
 
     def test_mids_502_accepts_well_formed_table(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

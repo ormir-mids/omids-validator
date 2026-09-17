@@ -15,7 +15,8 @@ from nibabel.filebasedimages import ImageFileError
 
 from mids_validator.file_types import nifti_stem
 from mids_validator.inventory import DatasetInventory, build_inventory
-from mids_validator.models import Finding, Severity
+from mids_validator.models import Finding
+from mids_validator.rule_catalog import finding_for_rule
 
 
 SUBJECT_LABEL_PATTERN = re.compile(r"(?:^|_)(sub-[A-Za-z0-9]+)_(.+)$")
@@ -71,10 +72,8 @@ def collect_image_headers(
             shape = tuple(int(dimension) for dimension in image.shape)
         except (ImageFileError, OSError, EOFError, ValueError) as error:
             findings.append(
-                Finding(
-                    rule_id="MIDS-401",
-                    severity=Severity.ERROR,
-                    title="Unreadable or invalid NIfTI file",
+                finding_for_rule(
+                    "MIDS-401",
                     message=(
                         "NIfTI header could not be opened and interpreted: "
                         f"{error}."
@@ -128,10 +127,8 @@ def mids_402_acquisition_dimension_outliers(
                 continue
 
             findings.append(
-                Finding(
-                    rule_id="MIDS-402",
-                    severity=Severity.WARNING,
-                    title="Acquisition dimension outlier",
+                finding_for_rule(
+                    "MIDS-402",
                     message=(
                         f"Image type {image_type!r} usually has shape "
                         f"{common_shape} ({common_count} of {total_count} "

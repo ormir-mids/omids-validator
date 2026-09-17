@@ -86,4 +86,10 @@ class ParticipantWorkflowTests(unittest.TestCase):
             report = validate(root, participants_requested=True, timestamp="now")
 
             self.assertEqual(report.actions[0]["operation"], "created")
-            self.assertNotIn("MIDS-501", {finding.rule_id for finding in report.findings})
+            participant_rule_ids = {
+                finding.rule_id
+                for finding in report.findings
+                if finding.rule_id.startswith("MIDS-5")
+            }
+            self.assertNotIn("MIDS-501", participant_rule_ids)
+            self.assertNotIn("MIDS-504", participant_rule_ids)

@@ -10,7 +10,8 @@ from mids_validator.acquisition_profiles import (
 )
 from mids_validator.file_types import is_json_file, is_nifti_file, nifti_stem
 from mids_validator.inventory import DatasetInventory, build_inventory
-from mids_validator.models import Finding, Severity
+from mids_validator.models import Finding
+from mids_validator.rule_catalog import finding_for_rule
 
 
 def _is_empty_metadata_value(value: object) -> bool:
@@ -81,10 +82,8 @@ def mids_301_303_304_metadata_fields(
                     if requirement_status == "mandatory":
                         if field_name not in json_data:
                             findings.append(
-                                Finding(
-                                    rule_id="MIDS-301",
-                                    severity=Severity.WARNING,
-                                    title="Mandatory metadata field is missing",
+                                finding_for_rule(
+                                    "MIDS-301",
                                     message=(
                                         f"Mandatory field {field_name} is "
                                         "absent from the primary JSON sidecar."
@@ -94,10 +93,8 @@ def mids_301_303_304_metadata_fields(
                             )
                         elif _is_empty_metadata_value(json_data[field_name]):
                             findings.append(
-                                Finding(
-                                    rule_id="MIDS-303",
-                                    severity=Severity.WARNING,
-                                    title="Mandatory metadata field is empty",
+                                finding_for_rule(
+                                    "MIDS-303",
                                     message=(
                                         f"Mandatory field {field_name} is "
                                         "present but empty."
@@ -111,10 +108,8 @@ def mids_301_303_304_metadata_fields(
                         and field_name not in json_data
                     ):
                         findings.append(
-                            Finding(
-                                rule_id="MIDS-304",
-                                severity=Severity.INFO,
-                                title="Optional metadata field is missing",
+                            finding_for_rule(
+                                "MIDS-304",
                                 message=(
                                     f"Optional field {field_name} is absent "
                                     "from the primary JSON sidecar."

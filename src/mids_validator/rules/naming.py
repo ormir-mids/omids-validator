@@ -14,7 +14,8 @@ from mids_validator.acquisition_profiles import (
 )
 from mids_validator.file_types import is_supported_file
 from mids_validator.inventory import DatasetInventory, build_inventory
-from mids_validator.models import Finding, Severity
+from mids_validator.models import Finding
+from mids_validator.rule_catalog import finding_for_rule
 
 
 SUBJECT_COMPONENT_PATTERN = re.compile(
@@ -34,10 +35,8 @@ def mids_101_unsupported_item(inventory: DatasetInventory) -> list[Finding]:
             for item in inventory.children(datatype_directory):
                 if not is_supported_file(item):
                     findings.append(
-                        Finding(
-                            rule_id="MIDS-101",
-                            severity=Severity.ERROR,
-                            title="Unsupported item in datatype directory",
+                        finding_for_rule(
+                            "MIDS-101",
                             message=(
                                 "Datatype directories may contain only NIfTI "
                                 "images and JSON sidecars."
@@ -73,10 +72,8 @@ def mids_102_subject_identifier_mismatch(
 
                 if actual_subject != expected_subject:
                     findings.append(
-                        Finding(
-                            rule_id="MIDS-102",
-                            severity=Severity.ERROR,
-                            title="Filename subject identifier mismatch",
+                        finding_for_rule(
+                            "MIDS-102",
                             message=(
                                 f"Filename must contain the subject identifier "
                                 f"{expected_subject}."
@@ -114,10 +111,8 @@ def mids_103_suffix_in_wrong_datatype(
                 if actual_datatype not in expected_datatypes:
                     expected_text = " or ".join(expected_datatypes)
                     findings.append(
-                        Finding(
-                            rule_id="MIDS-103",
-                            severity=Severity.ERROR,
-                            title="Recognized suffix in wrong datatype directory",
+                        finding_for_rule(
+                            "MIDS-103",
                             message=(
                                 f"Suffix {suffix} belongs in {expected_text}, "
                                 f"not {actual_datatype}."
@@ -161,10 +156,8 @@ def mids_104_case_conflicting_filenames(
         )
         for file_path in conflicting_paths:
             findings.append(
-                Finding(
-                    rule_id="MIDS-104",
-                    severity=Severity.WARNING,
-                    title="Case-conflicting filename",
+                finding_for_rule(
+                    "MIDS-104",
                     message=(
                         "Filename differs only by capitalization from another "
                         f"file in the same directory: {conflicting_names}."
