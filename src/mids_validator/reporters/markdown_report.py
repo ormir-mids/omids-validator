@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from mids_validator.models import Finding, Severity, ValidationReport
+from mids_validator.rule_catalog import NextStep, load_rule_catalog
 
 
 FINDING_EXAMPLE_THRESHOLD = 10
@@ -29,6 +30,7 @@ SEVERITY_DESCRIPTIONS = {
     ),
     Severity.INFO: "Non-blocking observations recorded by the validator.",
 }
+ACTIONABLE_SEVERITIES = (Severity.ERROR, Severity.WARNING)
 
 
 def _inventory_value(report: ValidationReport, key: str, default: object) -> object:
@@ -165,6 +167,55 @@ def render_findings(report: ValidationReport) -> str:
     return "\n\n".join(sections)
 
 
+def _render_recommended_response(next_step: NextStep) -> str:
+    """Render one catalogue response with an optional command or tool."""
+
+    lines = [f"**Recommended response:** {next_step.text}"]
+    if next_step.command is not None:
+        lines.extend(["", f"**Command:** `{next_step.command}`"])
+    if next_step.tool is not None:
+        lines.extend(["", f"**Tool:** `{next_step.tool}`"])
+    return "\n".join(lines)
+
+
+def render_practical_next_steps(report: ValidationReport) -> str:
+    """Render catalogue guidance for triggered errors and warnings."""
+
+    sorted_groups = sort_rule_groups(_group_findings(report))
+    if not any(sorted_groups[severity] for severity in ACTIONABLE_SEVERITIES):
+        return ""
+
+    catalogue = load_rule_catalog()
+    sections = [
+        "## Practical next steps",
+        (
+            "The guidance below is generated from the rules triggered in "
+            "this validation. Review the affected paths and messages in the "
+            "findings sections above before making changes."
+        ),
+    ]
+
+    for severity in ACTIONABLE_SEVERITIES:
+        groups = sorted_groups[severity]
+        if not groups:
+            continue
+
+        guidance = [f"### {SEVERITY_HEADINGS[severity]}"]
+        for rule_id, _group in groups:
+            rule = catalogue.get(rule_id)
+            guidance.append(
+                "\n\n".join(
+                    (
+                        f"#### {rule.rule_id} — {rule.title}",
+                        _render_recommended_response(rule.next_step),
+                    )
+                )
+            )
+        sections.append("\n\n".join(guidance))
+
+    return "\n\n".join(sections)
+
+
 def render_dataset_summary(report: ValidationReport) -> str:
     """Render the first report section: inherited dataset facts."""
 
@@ -276,16 +327,19 @@ def render_imaging_unit_inventory(report: ValidationReport) -> str:
 def render(report: ValidationReport) -> str:
     """Render the currently implemented Markdown report sections."""
 
-    return "\n\n".join(
-        (
-            "# MIDS Validator Report",
-            render_dataset_summary(report),
-            render_imaging_inventory(report),
-            render_findings(report),
-            # Deferred until the unit-level inventory is more useful:
-            # render_imaging_unit_inventory(report),
-        )
-    ) + "\n"
+    sections = [
+        "# MIDS Validator Report",
+        render_dataset_summary(report),
+        render_imaging_inventory(report),
+        render_findings(report),
+        # Deferred until the unit-level inventory is more useful:
+        # render_imaging_unit_inventory(report),
+    ]
+    practical_next_steps = render_practical_next_steps(report)
+    if practical_next_steps:
+        sections.append(practical_next_steps)
+
+    return "\n\n".join(sections) + "\n"
 
 
 def write(report: ValidationReport, path: Path) -> None:

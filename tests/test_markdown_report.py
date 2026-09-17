@@ -4,9 +4,11 @@ import unittest
 
 from mids_validator.models import Finding, Severity, ValidationReport, ValidationRun
 from mids_validator.reporters.markdown_report import (
+    render,
     render_dataset_summary,
     render_findings,
     render_imaging_inventory,
+    render_practical_next_steps,
     sort_rule_groups,
 )
 
@@ -147,6 +149,95 @@ class MarkdownReportTests(unittest.TestCase):
         self.assertIn("sub-001/image.nii.gz", markdown)
         self.assertNotIn("sub-011/image.nii.gz", markdown)
         self.assertIn("See [report.json](report.json)", markdown)
+
+    def test_practical_next_steps_use_catalogue_guidance_in_finding_order(
+        self,
+    ) -> None:
+        report = ValidationReport(
+            schema_version="1.0",
+            validator_version="test",
+            dataset_root="/data/study",
+            run=ValidationRun("now", False, False),
+            findings=(
+                Finding(
+                    "MIDS-503",
+                    Severity.WARNING,
+                    "Participant inventory mismatch",
+                    "A subject is absent from the table.",
+                    "participants.tsv",
+                ),
+                Finding(
+                    "MIDS-201",
+                    Severity.ERROR,
+                    "Missing primary JSON sidecar",
+                    "A sidecar is missing.",
+                    "sub-02/ct/image.nii.gz",
+                ),
+                Finding(
+                    "MIDS-201",
+                    Severity.ERROR,
+                    "Missing primary JSON sidecar",
+                    "Another sidecar is missing.",
+                    "sub-01/ct/image.nii.gz",
+                ),
+                Finding(
+                    "MIDS-402",
+                    Severity.WARNING,
+                    "Acquisition dimension outlier",
+                    "Image dimensions differ.",
+                    "sub-01/ct/outlier.nii.gz",
+                ),
+                Finding(
+                    "MIDS-204",
+                    Severity.INFO,
+                    "Optional patient JSON sidecar is absent",
+                    "An optional sidecar is absent.",
+                    "sub-01/ct/image.nii.gz",
+                ),
+            ),
+            summary={"error": 2, "warning": 2, "info": 1},
+            inventory={},
+        )
+
+        markdown = render_practical_next_steps(report)
+
+        self.assertIn("## Practical next steps", markdown)
+        self.assertLess(
+            markdown.index("### Errors"),
+            markdown.index("### Warnings"),
+        )
+        self.assertLess(markdown.index("MIDS-402"), markdown.index("MIDS-503"))
+        self.assertEqual(markdown.count("#### MIDS-201"), 1)
+        self.assertIn("**Tool:** `dcm2omids`", markdown)
+        self.assertIn(
+            "**Command:** `mids-validator DATASET --participants`",
+            markdown,
+        )
+        self.assertNotIn("MIDS-204", markdown)
+        self.assertNotIn("A sidecar is missing.", markdown)
+        self.assertNotIn("sub-02/ct/image.nii.gz", markdown)
+
+    def test_info_only_report_omits_practical_next_steps(self) -> None:
+        report = ValidationReport(
+            schema_version="1.0",
+            validator_version="test",
+            dataset_root="/data/study",
+            run=ValidationRun("now", False, False),
+            findings=(
+                Finding(
+                    "MIDS-204",
+                    Severity.INFO,
+                    "Optional patient JSON sidecar is absent",
+                    "An optional sidecar is absent.",
+                    "sub-01/ct/image.nii.gz",
+                ),
+            ),
+            summary={"error": 0, "warning": 0, "info": 1},
+            inventory={},
+        )
+
+        self.assertEqual(render_practical_next_steps(report), "")
+        self.assertNotIn("## Practical next steps", render(report))
 
 
 if __name__ == "__main__":
