@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from mids_validator.reporters import json_report, markdown_report, terminal
+from mids_validator.reporters import html_report, json_report, markdown_report, terminal
 from mids_validator.rules_document import write_rules_markdown
 from mids_validator.validator import validate
 
@@ -171,6 +171,7 @@ def main(argv: list[str] | None = None) -> int:
         report_directory = _create_report_directory(args.output_dir)
         json_report.write(report, report_directory / "report.json")
         markdown_report.write(report, report_directory / "report.md")
+        html_report.write(report, report_directory / "report.html")
     except (OSError, ValueError) as error:
         print(f"mids-validator: unable to write report: {error}", file=sys.stderr)
         return SETUP_ERROR

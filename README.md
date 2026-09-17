@@ -19,10 +19,11 @@ mids_validator --rules [-o OUTPUT_DIR]
 
 Each run creates a timestamped `mids_reports_YYYY-MM-DD_HHMMSS` directory
 under `OUTPUT_DIR` (the current working directory by default) and writes
-`report.md` and `report.json`. The report destination must be outside the
-dataset. The command prints a concise summary and returns status `1` when
-validation finds an error, `2` when it cannot validate or create the reports,
-and `0` otherwise.
+`report.html`, `report.md`, and `report.json`. `report.html` is a self-contained,
+styled report that can be opened in a browser without an internet connection.
+The report destination must be outside the dataset. The command prints a
+concise summary and returns status `1` when validation finds an error, `2` when
+it cannot validate or create the reports, and `0` otherwise.
 
 The standalone `--rules` mode does not validate a dataset. It writes
 `mids_validator_rules.md` directly under `OUTPUT_DIR` (the current working
@@ -41,7 +42,8 @@ with no arguments displays the help text.
 - `src/mids_validator/participants.py`: explicitly creates or populates
   `participants.tsv`.
 - `src/mids_validator/rules/`: contains one module for each validation layer.
-- `src/mids_validator/reporters/`: formats terminal, Markdown, and JSON output.
+- `src/mids_validator/reporters/`: formats terminal, HTML, Markdown, and JSON
+  output.
 - `tests/`: contains automated tests organized by layer.
 - `sample_data/`: contains current development data.
 

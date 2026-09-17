@@ -73,14 +73,21 @@ class ReportingTests(unittest.TestCase):
             self.assertEqual(len(report_directories), 1)
             report_path = report_directories[0] / "report.json"
             markdown_path = report_directories[0] / "report.md"
+            html_path = report_directories[0] / "report.html"
             self.assertTrue(report_path.is_file())
             self.assertTrue(markdown_path.is_file())
+            self.assertTrue(html_path.is_file())
             payload = json.loads(report_path.read_text(encoding="utf-8"))
             self.assertEqual(payload["schema_version"], "1.0")
             self.assertIn(
                 "# MIDS Validator Report",
                 markdown_path.read_text(encoding="utf-8"),
             )
+            self.assertIn(
+                "<!doctype html>",
+                html_path.read_text(encoding="utf-8"),
+            )
+            self.assertIn("HTML report:", stdout.getvalue())
             self.assertIn("Markdown report:", stdout.getvalue())
             self.assertIn("JSON report:", stdout.getvalue())
 

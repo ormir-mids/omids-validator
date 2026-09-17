@@ -9,81 +9,17 @@ from pathlib import Path
 from typing import Any
 
 from mids_validator.models import Finding, Severity, ValidationReport
+from mids_validator.reporters.report_data import (
+    ACTIONABLE_SEVERITIES,
+    FINDING_EXAMPLE_THRESHOLD,
+    SEVERITY_DESCRIPTIONS,
+    SEVERITY_HEADINGS,
+    SEVERITY_ORDER,
+    group_findings,
+    inventory_value,
+    sort_rule_groups,
+)
 from mids_validator.rule_catalog import NextStep, load_rule_catalog
-
-
-FINDING_EXAMPLE_THRESHOLD = 10
-SEVERITY_ORDER = (Severity.ERROR, Severity.WARNING, Severity.INFO)
-SEVERITY_HEADINGS = {
-    Severity.ERROR: "Errors",
-    Severity.WARNING: "Warnings",
-    Severity.INFO: "Informational findings",
-}
-SEVERITY_DESCRIPTIONS = {
-    Severity.ERROR: (
-        "Convention violations likely to cause downstream pipeline or "
-        "interoperability problems. These should be fixed."
-    ),
-    Severity.WARNING: (
-        "Probable problems or important inconsistencies that should be "
-        "reviewed."
-    ),
-    Severity.INFO: "Non-blocking observations recorded by the validator.",
-}
-ACTIONABLE_SEVERITIES = (Severity.ERROR, Severity.WARNING)
-
-
-def _inventory_value(report: ValidationReport, key: str, default: object) -> object:
-    """Read one optional inventory fact without hiding its default."""
-
-    return report.inventory.get(key, default)
-
-
-def _rule_number(rule_id: str) -> int:
-    """Return the numeric portion of a rule ID for numeric sorting."""
-
-    return int(rule_id.rsplit("-", 1)[1])
-
-
-def _group_findings(report: ValidationReport) -> dict[str, dict[str, Any]]:
-    """Group findings by rule in the same shape used by the JSON reporter."""
-
-    groups: dict[str, dict[str, Any]] = {}
-    for finding in report.findings:
-        group = groups.setdefault(
-            finding.rule_id,
-            {
-                "severity": finding.severity,
-                "title": finding.title,
-                "findings": [],
-            },
-        )
-        group["findings"].append(finding)
-
-    return groups
-
-
-def sort_rule_groups(
-    groups_by_rule: dict[str, dict[str, Any]],
-) -> dict[Severity, list[tuple[str, dict[str, Any]]]]:
-    """Sort rule groups by severity, then numeric rule ID.
-
-    Lists are used for the ordered result because ordering is presentation
-    logic, not part of the JSON data model.
-    """
-
-    groups_by_severity: dict[Severity, list[tuple[str, dict[str, Any]]]] = {
-        severity: [] for severity in SEVERITY_ORDER
-    }
-    for rule_id, group in groups_by_rule.items():
-        groups_by_severity[group["severity"]].append((rule_id, group))
-
-    for severity in SEVERITY_ORDER:
-        groups_by_severity[severity].sort(
-            key=lambda item: (_rule_number(item[0]), item[0])
-        )
-
-    return groups_by_severity
 
 
 def _render_path(finding: Finding) -> str:
@@ -158,7 +94,7 @@ def render_severity_section(
 def render_findings(report: ValidationReport) -> str:
     """Render findings by severity and numeric rule order."""
 
-    sorted_groups = sort_rule_groups(_group_findings(report))
+    sorted_groups = sort_rule_groups(group_findings(report))
     sections = [
         render_severity_section(severity, sorted_groups[severity])
         for severity in SEVERITY_ORDER
@@ -181,7 +117,7 @@ def _render_recommended_response(next_step: NextStep) -> str:
 def render_practical_next_steps(report: ValidationReport) -> str:
     """Render catalogue guidance for triggered errors and warnings."""
 
-    sorted_groups = sort_rule_groups(_group_findings(report))
+    sorted_groups = sort_rule_groups(group_findings(report))
     if not any(sorted_groups[severity] for severity in ACTIONABLE_SEVERITIES):
         return ""
 
@@ -219,15 +155,15 @@ def render_practical_next_steps(report: ValidationReport) -> str:
 def render_dataset_summary(report: ValidationReport) -> str:
     """Render the first report section: inherited dataset facts."""
 
-    subject_count = _inventory_value(report, "subject_count", "unknown")
-    imaging_session_count = _inventory_value(
+    subject_count = inventory_value(report, "subject_count", "unknown")
+    imaging_session_count = inventory_value(
         report, "imaging_session_count", "unknown"
     )
-    image_count = _inventory_value(report, "image_count", "unknown")
-    images_by_datatype = _inventory_value(
+    image_count = inventory_value(report, "image_count", "unknown")
+    images_by_datatype = inventory_value(
         report, "images_by_datatype", {}
     )
-    session_counts = _inventory_value(report, "session_counts", {})
+    session_counts = inventory_value(report, "session_counts", {})
 
     lines = [
         "## Dataset summary",
@@ -272,8 +208,8 @@ def render_dataset_summary(report: ValidationReport) -> str:
 def render_imaging_inventory(report: ValidationReport) -> str:
     """Render normalized image coverage."""
 
-    coverage = _inventory_value(report, "coverage", [])
-    imaging_session_count = _inventory_value(
+    coverage = inventory_value(report, "coverage", [])
+    imaging_session_count = inventory_value(
         report, "imaging_session_count", "unknown"
     )
 
@@ -299,7 +235,7 @@ def render_imaging_inventory(report: ValidationReport) -> str:
 def render_imaging_unit_inventory(report: ValidationReport) -> str:
     """Render the deferred subject/session-level image inventory."""
 
-    units = _inventory_value(report, "imaging_units", [])
+    units = inventory_value(report, "imaging_units", [])
 
     lines = [
         "## Imaging-unit inventory",
