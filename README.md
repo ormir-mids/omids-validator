@@ -1,60 +1,111 @@
 # MIDS Validator
 
-The MIDS validator checks MIDS-formatted musculoskeletal imaging datasets for
+The MIDS Validator checks MIDS-formatted musculoskeletal imaging datasets for
 structural, naming, companion-file, metadata, image-header, and dataset-wide
-consistency issues.
+consistency issues. It produces self-contained HTML, Markdown, and JSON reports
+that can be reviewed or shared without rerunning the validation.
 
-## Project status
+## Status
 
-The modular implementation under `src/mids_validator/` provides the current
-command-line tool and continues to be developed incrementally.
+This repository contains the current development version of the validator.
+Validation rules and command-line behavior may change while the MIDS standard
+and the implementation are being refined.
 
-## Command
+## Requirements
 
-```text
-mids-validator DATASET [-p] [-i] [-o OUTPUT_DIR]
-mids-validator --rules [-o OUTPUT_DIR]
-mids_validator --rules [-o OUTPUT_DIR]
+- Python 3.10 or newer
+- `pip`
+
+Runtime dependencies are declared in `pyproject.toml`. Installing the project
+also installs the required version of NiBabel and its dependencies.
+
+## Installation
+
+From the repository root, create a virtual environment and install the package:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
 ```
 
-Each run creates a timestamped `mids_reports_YYYY-MM-DD_HHMMSS` directory
-under `OUTPUT_DIR` (the current working directory by default) and writes
-`report.html`, `report.md`, and `report.json`. `report.html` is a self-contained,
-styled report that can be opened in a browser without an internet connection.
-The report destination must be outside the dataset. The command prints a
-concise summary and returns status `1` when validation finds an error, `2` when
-it cannot validate or create the reports, and `0` otherwise.
+On Windows PowerShell, activate the environment with:
 
-The standalone `--rules` mode does not validate a dataset. It writes
-`mids_validator_rules.md` directly under `OUTPUT_DIR` (the current working
-directory by default), replacing an existing generated document with that
-name. On success it prints the saved file's absolute path. Running the command
-with no arguments displays the help text.
+```powershell
+.venv\Scripts\Activate.ps1
+```
 
-## Code layout
+The editable installation makes the `mids-validator` command available and
+keeps it linked to the checked-out source code.
 
-- `src/mids_validator/cli.py`: accepts user input and requests a validation run.
-- `src/mids_validator/validator.py`: coordinates the validation layers.
-- `src/mids_validator/inventory.py`: scans the dataset once.
-- `src/mids_validator/models.py`: defines findings, actions, and reports.
-- `src/mids_validator/participant_table.py`: reads and validates the shared
-  participant-table structure.
-- `src/mids_validator/participants.py`: explicitly creates or populates
-  `participants.tsv`.
-- `src/mids_validator/rules/`: contains one module for each validation layer.
-- `src/mids_validator/reporters/`: formats terminal, HTML, Markdown, and JSON
-  output.
-- `tests/`: contains automated tests organized by layer.
-- `sample_data/`: contains current development data.
+## Usage
 
-## Development approach
+Validate a dataset:
 
-The code is written for scientific programmers who need to inspect and defend
-its behavior without learning a framework first. Validation rules use explicit
-control flow, descriptive names, shared immutable findings, and one inventory
-of the dataset. Each layer owns one visible rule registry, and packaged rule and
-metadata catalogues are checked before use.
+```bash
+mids-validator /path/to/dataset
+```
 
-Changes should remain small and traceable across behavior, tests, and rule
-documentation. Ordinary validation is read-only; participant-table mutation is
-available only through the explicit `--participants` option.
+Include NIfTI header checks:
+
+```bash
+mids-validator /path/to/dataset --inspect-images
+```
+
+Write reports under a chosen directory:
+
+```bash
+mids-validator /path/to/dataset --output-dir /path/to/reports
+```
+
+The report directory must be outside the dataset being validated. Each run
+creates a timestamped `mids_reports_YYYY-MM-DD_HHMMSS` directory containing:
+
+- `report.html`: a styled, self-contained report for browser review
+- `report.md`: a plain-text-friendly review document
+- `report.json`: structured output for downstream use
+
+Ordinary validation is read-only. The `--participants` option is different: it
+creates `participants.tsv` when missing and adds subject identifiers discovered
+in the dataset. Review the dataset and use this option only when that change is
+intended.
+
+```bash
+mids-validator /path/to/dataset --participants
+```
+
+Generate the current validation-rule catalogue without validating a dataset:
+
+```bash
+mids-validator --rules --output-dir /path/to/output
+```
+
+This writes `mids_validator_rules.md` directly in the selected output directory
+and replaces an existing file with that name.
+
+Run `mids-validator --help` for the complete command reference.
+
+## Exit status
+
+- `0`: validation completed without errors, or the rule catalogue was written
+- `1`: validation completed and found one or more errors
+- `2`: the validator could not complete the requested operation
+
+An exit status of `1` means the reports were generated successfully and contain
+validation findings.
+
+## Running the tests
+
+With the virtual environment active and the package installed:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+## Repository layout
+
+- `src/mids_validator/`: validator, command-line interface, and report writers
+- `src/mids_validator/rules/`: validation rules organized by layer
+- `src/mids_validator/data/`: packaged rule and metadata catalogues
+- `tests/`: automated tests organized by validation layer and component
