@@ -1,7 +1,8 @@
 # Local or potentially sensitive datasets
 sample_data/
 
-# Local developer records and generated review artifacts
+# Local agent instructions, developer records, and generated review artifacts
+AGENTS.md
 developer/
 
 # Python-generated files
