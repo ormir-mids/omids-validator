@@ -35,8 +35,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--participants",
         action="store_true",
         help=(
-            "create participants.tsv if it does not exist and populate it "
-            "with discovered subject IDs"
+            "create or populate participants.tsv with discovered subject IDs "
+            "and available patient age and sex metadata"
         ),
     )
     parser.add_argument(

@@ -346,7 +346,7 @@
       "description": "Within one imaging session for a subject, all non-empty string `Age` values in readable patient JSON sidecars must be identical. A subject without explicit session directories is treated as having one imaging session. Missing age values do not trigger this rule.",
       "next_step": {
         "kind": "review",
-        "text": "Review the conflicting age values against the acquisition dates and appropriate source records. Age may differ between longitudinal sessions, so do not make values identical across sessions."
+        "text": "Review the conflicting age values against the acquisition dates and appropriate source records."
       }
     },
     "MIDS-506": {

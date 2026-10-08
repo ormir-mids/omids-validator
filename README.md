@@ -71,8 +71,10 @@ creates a timestamped `omids_reports_YYYY-MM-DD_HHMMSS` directory containing:
 
 Ordinary validation is read-only. The `--participants` option is different: it
 creates `participants.tsv` when missing and adds subject identifiers discovered
-in the dataset. Review the dataset and use this option only when that change is
-intended.
+in the dataset. It also fills blank age and sex cells from patient JSON
+sidecars when the values can be selected safely. Existing nonblank cells are
+never overwritten. Review the dataset and use this option only when that change
+is intended.
 
 ```bash
 omids_validator /path/to/dataset --participants
@@ -134,4 +136,6 @@ The main supporting modules are:
   `data/rules.json`
 - `participant_table.py` and `participants.py`: reading and explicitly requested
   updates of `participants.tsv`
+- `patient_metadata.py`: one shared pass over patient JSON sidecars for Layer 5
+  and participant-table updates
 - `models.py`: the findings and report objects shared by validation and reporting

@@ -8,6 +8,10 @@ from pathlib import Path
 
 from omids_validator.inventory import DatasetInventory, build_inventory
 from omids_validator.models import Finding
+from omids_validator.patient_metadata import (
+    PatientMetadataCollection,
+    collect_patient_metadata,
+)
 from omids_validator.participant_table import (
     ParticipantTable,
     ParticipantTableProblem,
@@ -151,6 +155,78 @@ def mids_503_participant_inventory_mismatch(
     return findings
 
 
+def mids_505_patient_age_differs_within_session(
+    inventory: DatasetInventory,
+    patient_metadata: PatientMetadataCollection | None = None,
+) -> list[Finding]:
+    """MIDS-505: compare patient age strings within each imaging session."""
+
+    collection = patient_metadata or collect_patient_metadata(inventory)
+    ages_by_session: dict[tuple[str, str | None], list[str]] = {}
+    for observation in collection.observations:
+        if observation.age is None:
+            continue
+        key = (observation.subject_id, observation.session_id)
+        ages_by_session.setdefault(key, []).append(observation.age)
+
+    findings: list[Finding] = []
+    for (subject_id, session_id), ages in ages_by_session.items():
+        if len(set(ages)) < 2:
+            continue
+
+        affected_directory = inventory.root / subject_id
+        session_description = "the implicit imaging session"
+        if session_id is not None:
+            affected_directory /= session_id
+            session_description = f"session {session_id!r}"
+        findings.append(
+            finding_for_rule(
+                "MIDS-505",
+                message=(
+                    f"Subject {subject_id!r} has conflicting patient age "
+                    f"metadata within {session_description} across "
+                    f"{len(ages)} patient sidecars."
+                ),
+                path=inventory.relative_path(affected_directory),
+            )
+        )
+
+    return findings
+
+
+def mids_506_patient_sex_differs_within_subject(
+    inventory: DatasetInventory,
+    patient_metadata: PatientMetadataCollection | None = None,
+) -> list[Finding]:
+    """MIDS-506: compare patient sex strings across each subject."""
+
+    collection = patient_metadata or collect_patient_metadata(inventory)
+    sex_values_by_subject: dict[str, list[str]] = {}
+    for observation in collection.observations:
+        if observation.sex is None:
+            continue
+        sex_values_by_subject.setdefault(observation.subject_id, []).append(
+            observation.sex
+        )
+
+    findings: list[Finding] = []
+    for subject_id, sex_values in sex_values_by_subject.items():
+        if len(set(sex_values)) < 2:
+            continue
+        findings.append(
+            finding_for_rule(
+                "MIDS-506",
+                message=(
+                    f"Subject {subject_id!r} has conflicting patient sex "
+                    f"metadata across {len(sex_values)} patient sidecars."
+                ),
+                path=inventory.relative_path(inventory.root / subject_id),
+            )
+        )
+
+    return findings
+
+
 def validate_dataset(dataset_path: Path) -> list[Finding]:
     """Run Layer 5 rules with one inventory scan and one table read."""
 
@@ -158,9 +234,13 @@ def validate_dataset(dataset_path: Path) -> list[Finding]:
     return validate_dataset_inventory(inventory)
 
 
-def validate_dataset_inventory(inventory: DatasetInventory) -> list[Finding]:
+def validate_dataset_inventory(
+    inventory: DatasetInventory,
+    patient_metadata: PatientMetadataCollection | None = None,
+) -> list[Finding]:
     """Run Layer 5 rules against an inventory supplied by the coordinator."""
 
+    collection = patient_metadata or collect_patient_metadata(inventory)
     findings = mids_501_conflicting_participants_table_filenames(inventory)
     findings.extend(mids_504_missing_participants_table(inventory))
     participant_table, table_problems = read_participants_table(inventory)
@@ -170,5 +250,12 @@ def validate_dataset_inventory(inventory: DatasetInventory) -> list[Finding]:
         findings.extend(
             mids_503_participant_inventory_mismatch(inventory, participant_table)
         )
+
+    findings.extend(
+        mids_505_patient_age_differs_within_session(inventory, collection)
+    )
+    findings.extend(
+        mids_506_patient_sex_differs_within_subject(inventory, collection)
+    )
 
     return findings

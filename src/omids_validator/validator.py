@@ -13,13 +13,17 @@ from typing import Callable
 from omids_validator import __version__
 from omids_validator.file_types import nifti_stem
 from omids_validator.inventory import DatasetInventory, build_inventory
-from omids_validator.participants import create_or_populate_participants
 from omids_validator.models import (
     Finding,
     Severity,
     ValidationReport,
     ValidationRun,
 )
+from omids_validator.patient_metadata import (
+    PatientMetadataCollection,
+    collect_patient_metadata,
+)
+from omids_validator.participants import create_or_populate_participants
 from omids_validator.rules import (
     layer0_structure,
     layer1_naming,
@@ -43,10 +47,16 @@ def _run_rules(inventory: DatasetInventory, rules: tuple[InventoryRule, ...]) ->
     return findings
 
 
-def _dataset_findings(inventory: DatasetInventory) -> list[Finding]:
-    """Run Layer 5 without causing a second inventory scan."""
+def _dataset_findings(
+    inventory: DatasetInventory,
+    patient_metadata: PatientMetadataCollection,
+) -> list[Finding]:
+    """Run Layer 5 with the shared inventory and patient metadata."""
 
-    return layer5_dataset.validate_dataset_inventory(inventory)
+    return layer5_dataset.validate_dataset_inventory(
+        inventory,
+        patient_metadata,
+    )
 
 
 def _coverage_type(image: Path) -> str:
@@ -224,9 +234,10 @@ def validate(
         )
 
     inventory = build_inventory(requested_path)
+    patient_metadata = collect_patient_metadata(inventory)
     actions: tuple[dict[str, object], ...] = ()
     if participants_requested:
-        action = create_or_populate_participants(inventory)
+        action = create_or_populate_participants(inventory, patient_metadata)
         actions = (action,)
         if action["operation"] == "created":
             created_path = inventory.root / "participants.tsv"
@@ -249,7 +260,7 @@ def validate(
             )
         )
 
-    findings.extend(_dataset_findings(inventory))
+    findings.extend(_dataset_findings(inventory, patient_metadata))
     ordered_findings = _ordered_findings(findings)
     return ValidationReport(
         schema_version=SCHEMA_VERSION,
