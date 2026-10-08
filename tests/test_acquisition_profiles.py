@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mids_validator.acquisition_profiles import (
+from omids_validator.acquisition_profiles import (
     MetadataRequirementsError,
     acquisition_profile_for_suffix,
     acquisition_profiles,

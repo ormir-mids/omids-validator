@@ -1,0 +1,364 @@
+{
+  "schema_version": "1.0",
+  "rules": {
+    "MIDS-001": {
+      "layer": 0,
+      "status": "active",
+      "title": "Invalid dataset path",
+      "severity": "error",
+      "description": "The supplied dataset path must exist, be readable, and be a directory.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Provide the path to an existing readable MIDS dataset directory."
+      }
+    },
+    "MIDS-002": {
+      "layer": 0,
+      "status": "active",
+      "title": "Unexpected item in dataset root",
+      "severity": "error",
+      "description": "The dataset root may contain only subject directories named `sub-<ID>` and `participants.tsv`.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Move the affected root items outside the MIDS dataset or organize them within the appropriate subject directory."
+      }
+    },
+    "MIDS-003": {
+      "layer": 0,
+      "status": "active",
+      "title": "Invalid subject identifier",
+      "severity": "error",
+      "description": "Subject directories must follow `sub-<ID>`, where `<ID>` contains only accepted alphanumeric characters.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Rename the subject directory and corresponding file identifiers to a valid `sub-<ID>`."
+      }
+    },
+    "MIDS-004": {
+      "layer": 0,
+      "status": "active",
+      "title": "Invalid session identifier",
+      "severity": "error",
+      "description": "Session directories, when present, must follow `ses-<ID>`, where `<ID>` contains only accepted alphanumeric characters.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Rename the session directory and corresponding file identifiers to a valid `ses-<ID>`."
+      }
+    },
+    "MIDS-005": {
+      "layer": 0,
+      "status": "active",
+      "title": "Mixed session and direct-datatype structure",
+      "severity": "error",
+      "description": "Within one subject, imaging data must either be stored inside `ses-<ID>` session directories or directly inside datatype directories. The two layouts cannot be mixed for the same subject.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Choose one layout for the subject: place all imaging data inside session directories, or place all datatype directories directly inside the subject directory."
+      }
+    },
+    "MIDS-006": {
+      "layer": 0,
+      "status": "active",
+      "title": "Unrecognized datatype item",
+      "severity": "error",
+      "description": "Items at the imaging-data level must be supported datatype directories: `mr-anat`, `mr-quant`, `ct`, or `rx`.",
+      "next_step": {
+        "kind": "review",
+        "text": "Move the affected item into the appropriate supported datatype directory, or move it outside the MIDS dataset."
+      }
+    },
+    "MIDS-007": {
+      "layer": 0,
+      "status": "active",
+      "title": "Empty datatype directory",
+      "severity": "warning",
+      "description": "A recognized datatype directory contains no image data.",
+      "next_step": {
+        "kind": "review",
+        "text": "Determine whether the directory represents an incomplete conversion or an unused datatype directory."
+      }
+    },
+    "MIDS-008": {
+      "layer": 0,
+      "status": "active",
+      "title": "Subject contains no recognized imaging data",
+      "severity": "warning",
+      "description": "A subject directory contains no images in recognized datatype directories.",
+      "next_step": {
+        "kind": "review",
+        "text": "Determine whether imaging data are missing, stored in an unsupported location, or intentionally absent for this subject."
+      }
+    },
+    "MIDS-009": {
+      "layer": 0,
+      "status": "active",
+      "title": "Operating-system artifact present",
+      "severity": "warning",
+      "description": "A common operating-system artifact is present in the dataset. The most common example is `.DS_Store`, which macOS creates automatically.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Remove the reported operating-system artifact before sharing the dataset."
+      }
+    },
+    "MIDS-101": {
+      "layer": 1,
+      "status": "active",
+      "title": "Unsupported item in datatype directory",
+      "severity": "error",
+      "description": "Datatype directories may contain only recognized finished image files and their metadata sidecars.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Move the unsupported item outside the datatype directory or convert it to a supported dataset file."
+      }
+    },
+    "MIDS-102": {
+      "layer": 1,
+      "status": "active",
+      "title": "Filename subject identifier mismatch",
+      "severity": "error",
+      "description": "Every supported image and JSON filename must contain a subject identifier matching its containing subject directory.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Correct the filename subject identifier so it matches the containing subject directory."
+      }
+    },
+    "MIDS-103": {
+      "layer": 1,
+      "status": "active",
+      "title": "Recognized suffix in wrong datatype directory",
+      "severity": "error",
+      "description": "A recognized acquisition suffix must be stored in its associated datatype directory.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Move the affected image and its sidecars to the datatype directory associated with the recognized suffix."
+      }
+    },
+    "MIDS-104": {
+      "layer": 1,
+      "status": "active",
+      "title": "Case-conflicting filename",
+      "severity": "warning",
+      "description": "Two filenames in the same datatype directory differ only by capitalization.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Resolve the case-conflicting filenames so they remain distinct and portable across filesystems."
+      }
+    },
+    "MIDS-201": {
+      "layer": 2,
+      "status": "active",
+      "title": "Missing primary JSON sidecar",
+      "severity": "error",
+      "description": "Every NIfTI image requires a matching primary JSON sidecar in the same datatype directory.",
+      "next_step": {
+        "kind": "tool",
+        "tool": "dcm2omids",
+        "text": "Reconvert the source DICOM data with dcm2omids to regenerate the NIfTI images and their primary JSON sidecars."
+      }
+    },
+    "MIDS-202": {
+      "layer": 2,
+      "status": "active",
+      "title": "Malformed primary JSON sidecar",
+      "severity": "error",
+      "description": "A primary JSON sidecar must contain syntactically valid, readable UTF-8 JSON.",
+      "next_step": {
+        "kind": "tool",
+        "tool": "dcm2omids",
+        "text": "Regenerate the affected primary sidecar from the source DICOM data with dcm2omids, or correct the reported JSON problem."
+      }
+    },
+    "MIDS-203": {
+      "layer": 2,
+      "status": "active",
+      "title": "Malformed optional JSON sidecar",
+      "severity": "warning",
+      "description": "A present patient or extra JSON sidecar must contain syntactically valid, readable UTF-8 JSON.",
+      "next_step": {
+        "kind": "tool",
+        "tool": "dcm2omids",
+        "text": "Regenerate the affected optional sidecar from the source DICOM data with dcm2omids."
+      }
+    },
+    "MIDS-204": {
+      "layer": 2,
+      "status": "active",
+      "title": "Optional patient JSON sidecar is absent",
+      "severity": "info",
+      "description": "The optional `<image-stem>_patient.json` sidecar is absent.",
+      "next_step": {
+        "kind": "none",
+        "text": "No action is required unless patient-sidecar metadata are needed for the intended use."
+      }
+    },
+    "MIDS-205": {
+      "layer": 2,
+      "status": "active",
+      "title": "Optional extra JSON sidecar is absent",
+      "severity": "info",
+      "description": "The optional `<image-stem>_extra.json` sidecar is absent.",
+      "next_step": {
+        "kind": "none",
+        "text": "No action is required unless extra-sidecar metadata are needed for the intended use."
+      }
+    },
+    "MIDS-206": {
+      "layer": 2,
+      "status": "active",
+      "title": "Orphan JSON sidecar",
+      "severity": "warning",
+      "description": "A primary, patient, or extra JSON sidecar exists without a corresponding NIfTI image.",
+      "next_step": {
+        "kind": "review",
+        "text": "Determine whether the corresponding image is missing or the orphan sidecar no longer belongs in the dataset."
+      }
+    },
+    "MIDS-207": {
+      "layer": 2,
+      "status": "active",
+      "title": "Invalid extra JSON structure",
+      "severity": "warning",
+      "description": "An extra JSON sidecar must contain exactly the expected meta and extra top-level structures.",
+      "next_step": {
+        "kind": "tool",
+        "tool": "dcm2omids",
+        "text": "Regenerate the affected extra sidecar with dcm2omids or correct its top-level structure."
+      }
+    },
+    "MIDS-301": {
+      "layer": 3,
+      "status": "active",
+      "title": "Mandatory metadata field is missing",
+      "severity": "warning",
+      "description": "A metadata field classified as mandatory for the recognized acquisition profile is absent from the primary JSON sidecar.",
+      "next_step": {
+        "kind": "review",
+        "text": "Recover the reported field from the source acquisition metadata or study records where available."
+      }
+    },
+    "MIDS-302": {
+      "layer": 3,
+      "status": "deferred",
+      "title": "Metadata field has an invalid type",
+      "severity": "info",
+      "description": "A recognized metadata field is present but cannot be interpreted using its verified expected type.",
+      "next_step": {
+        "kind": "none",
+        "text": "This rule is deferred until representative output and expected JSON types are verified."
+      }
+    },
+    "MIDS-303": {
+      "layer": 3,
+      "status": "active",
+      "title": "Mandatory metadata field is empty",
+      "severity": "warning",
+      "description": "A mandatory metadata field is present but contains no usable value.",
+      "next_step": {
+        "kind": "review",
+        "text": "Recover the reported value from the source acquisition metadata or study records where available."
+      }
+    },
+    "MIDS-304": {
+      "layer": 3,
+      "status": "active",
+      "title": "Optional metadata field is missing",
+      "severity": "info",
+      "description": "A metadata field classified as optional for the recognized acquisition profile is absent from the primary JSON sidecar.",
+      "next_step": {
+        "kind": "none",
+        "text": "No action is required unless the optional field is needed for the intended analysis or reuse."
+      }
+    },
+    "MIDS-401": {
+      "layer": 4,
+      "status": "active",
+      "title": "Unreadable or invalid NIfTI file",
+      "severity": "error",
+      "description": "The image cannot be opened and interpreted as a NIfTI file.",
+      "next_step": {
+        "kind": "tool",
+        "tool": "dcm2omids",
+        "text": "Reconvert the affected source imaging data with dcm2omids or replace the unreadable NIfTI file from an authoritative source."
+      }
+    },
+    "MIDS-402": {
+      "layer": 4,
+      "status": "active",
+      "title": "Acquisition dimension outlier",
+      "severity": "warning",
+      "description": "An image's dimensions differ from the common shape for the same image type across the dataset.",
+      "next_step": {
+        "kind": "review",
+        "text": "Compare the affected image with the expected acquisition dimensions and determine whether the difference is intentional."
+      }
+    },
+    "MIDS-501": {
+      "layer": 5,
+      "status": "active",
+      "title": "Conflicting participants table filenames",
+      "severity": "error",
+      "description": "The dataset contains exact `participants.tsv` and one or more filenames that differ from it only by capitalization.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Resolve the conflicting participants-table files and retain one authoritative exactly named `participants.tsv`."
+      }
+    },
+    "MIDS-502": {
+      "layer": 5,
+      "status": "active",
+      "title": "Participants table is invalid",
+      "severity": "error",
+      "description": "`participants.tsv` must be valid tab-separated data with one coherent `participant_id` key per row.",
+      "next_step": {
+        "kind": "manual",
+        "text": "Correct the reported table structure, participant identifier, or row-level problem."
+      }
+    },
+    "MIDS-503": {
+      "layer": 5,
+      "status": "active",
+      "title": "Participant inventory mismatch",
+      "severity": "warning",
+      "description": "The subject directories and `participant_id` values do not describe the same subject set.",
+      "next_step": {
+        "kind": "command",
+        "command": "omids_validator DATASET --participants",
+        "text": "Use `--participants` to add subject directories missing from the table; review participant rows that have no corresponding subject directory."
+      }
+    },
+    "MIDS-504": {
+      "layer": 5,
+      "status": "active",
+      "title": "Participants table is absent",
+      "severity": "warning",
+      "description": "The dataset does not contain a root-level file named exactly `participants.tsv`.",
+      "next_step": {
+        "kind": "command",
+        "command": "omids_validator DATASET --participants",
+        "text": "Create or populate `participants.tsv` from the subject-directory inventory."
+      }
+    },
+    "MIDS-505": {
+      "layer": 5,
+      "status": "active",
+      "title": "Patient age differs within an imaging session",
+      "severity": "warning",
+      "description": "Within one imaging session for a subject, all non-empty string `Age` values in readable patient JSON sidecars must be identical. A subject without explicit session directories is treated as having one imaging session. Missing age values do not trigger this rule.",
+      "next_step": {
+        "kind": "review",
+        "text": "Review the conflicting age values against the acquisition dates and appropriate source records. Age may differ between longitudinal sessions, so do not make values identical across sessions."
+      }
+    },
+    "MIDS-506": {
+      "layer": 5,
+      "status": "active",
+      "title": "Patient sex differs within a subject",
+      "severity": "info",
+      "description": "Across all imaging sessions for a subject, non-empty string `Sex` values in readable patient JSON sidecars are expected to be identical. Missing sex values do not trigger this rule.",
+      "next_step": {
+        "kind": "review",
+        "text": "Review the differing values in the study context. Patient sex metadata may legitimately change or be corrected over time; this informational finding helps distinguish an intended update from a coding or conversion error and must not be used to overwrite values automatically."
+      }
+    }
+  }
+}

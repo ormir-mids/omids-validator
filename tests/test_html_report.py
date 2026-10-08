@@ -2,8 +2,8 @@
 
 import unittest
 
-from mids_validator.models import Finding, Severity, ValidationReport, ValidationRun
-from mids_validator.reporters.html_report import render
+from omids_validator.models import Finding, Severity, ValidationReport, ValidationRun
+from omids_validator.reporters.html_report import render
 
 
 def make_report(

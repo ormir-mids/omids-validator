@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mids_validator.file_types import (
+from omids_validator.file_types import (
     is_json_file,
     is_nifti_file,
     is_supported_file,

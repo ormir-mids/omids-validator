@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mids_validator.inventory import build_inventory
+from omids_validator.inventory import build_inventory
 
 
 class DatasetInventoryTests(unittest.TestCase):

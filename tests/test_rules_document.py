@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mids_validator.rules_document import (
+from omids_validator.rules_document import (
     render_rules_markdown,
     write_rules_markdown,
 )
@@ -50,7 +50,7 @@ class RulesDocumentTests(unittest.TestCase):
 
         self.assertIn("**Tool:** `dcm2omids`", markdown)
         self.assertIn(
-            "**Command:** `mids-validator DATASET --participants`",
+            "**Command:** `omids_validator DATASET --participants`",
             markdown,
         )
         self.assertIn("- **Response type:** review", markdown)
@@ -60,7 +60,7 @@ class RulesDocumentTests(unittest.TestCase):
 
         self.assertNotIn("**Status:**", markdown)
         self.assertNotIn("### MIDS-302", markdown)
-        self.assertEqual(markdown.count("### MIDS-"), 29)
+        self.assertEqual(markdown.count("### MIDS-"), 31)
 
     def test_glossary_explains_dataset_structure_terms(self) -> None:
         markdown = render_rules_markdown()

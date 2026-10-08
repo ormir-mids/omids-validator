@@ -2,8 +2,8 @@
 
 import unittest
 
-from mids_validator.models import Finding, Severity, ValidationReport, ValidationRun
-from mids_validator.reporters.markdown_report import (
+from omids_validator.models import Finding, Severity, ValidationReport, ValidationRun
+from omids_validator.reporters.markdown_report import (
     render,
     render_dataset_summary,
     render_findings,
@@ -210,7 +210,7 @@ class MarkdownReportTests(unittest.TestCase):
         self.assertEqual(markdown.count("#### MIDS-201"), 1)
         self.assertIn("**Tool:** `dcm2omids`", markdown)
         self.assertIn(
-            "**Command:** `mids-validator DATASET --participants`",
+            "**Command:** `omids_validator DATASET --participants`",
             markdown,
         )
         self.assertNotIn("MIDS-204", markdown)

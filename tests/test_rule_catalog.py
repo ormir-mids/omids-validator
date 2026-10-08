@@ -3,8 +3,8 @@
 import json
 import unittest
 
-from mids_validator.models import Severity
-from mids_validator.rule_catalog import (
+from omids_validator.models import Severity
+from omids_validator.rule_catalog import (
     RuleCatalogError,
     finding_for_rule,
     load_rule_catalog,
@@ -42,7 +42,7 @@ class RuleCatalogTests(unittest.TestCase):
         catalogue = load_rule_catalog()
 
         self.assertEqual(catalogue.schema_version, "1.0")
-        self.assertEqual(len(catalogue.rules), 30)
+        self.assertEqual(len(catalogue.rules), 32)
         self.assertEqual(catalogue.get("MIDS-201").severity, Severity.ERROR)
         self.assertEqual(catalogue.get("MIDS-201").next_step.tool, "dcm2omids")
         self.assertEqual(catalogue.get("MIDS-203").next_step.tool, "dcm2omids")
@@ -53,6 +53,8 @@ class RuleCatalogTests(unittest.TestCase):
 
         conflicting = catalogue.get("MIDS-501")
         absent = catalogue.get("MIDS-504")
+        age_within_session = catalogue.get("MIDS-505")
+        sex_within_subject = catalogue.get("MIDS-506")
 
         self.assertEqual(conflicting.severity, Severity.ERROR)
         self.assertEqual(
@@ -63,7 +65,17 @@ class RuleCatalogTests(unittest.TestCase):
         self.assertEqual(absent.title, "Participants table is absent")
         self.assertEqual(
             absent.next_step.command,
-            "mids-validator DATASET --participants",
+            "omids_validator DATASET --participants",
+        )
+        self.assertEqual(age_within_session.severity, Severity.WARNING)
+        self.assertEqual(
+            age_within_session.title,
+            "Patient age differs within an imaging session",
+        )
+        self.assertEqual(sex_within_subject.severity, Severity.INFO)
+        self.assertEqual(
+            sex_within_subject.title,
+            "Patient sex differs within a subject",
         )
 
     def test_unknown_rule_id_has_a_clear_error(self) -> None:

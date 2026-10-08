@@ -9,10 +9,10 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from mids_validator.cli import RULES_DOCUMENT_NAME, main
-from mids_validator.models import Finding, Severity, ValidationReport, ValidationRun
-from mids_validator.reporters.json_report import as_dict
-from mids_validator.rules_document import render_rules_markdown
+from omids_validator.cli import RULES_DOCUMENT_NAME, main
+from omids_validator.models import Finding, Severity, ValidationReport, ValidationRun
+from omids_validator.reporters.json_report import as_dict
+from omids_validator.rules_document import render_rules_markdown
 
 
 class ReportingTests(unittest.TestCase):
@@ -69,7 +69,7 @@ class ReportingTests(unittest.TestCase):
                 result = main([str(dataset), "-o", str(output)])
 
             self.assertEqual(result, 0)
-            report_directories = sorted(output.glob("mids_reports_*"))
+            report_directories = sorted(output.glob("omids_reports_*"))
             self.assertEqual(len(report_directories), 1)
             report_path = report_directories[0] / "report.json"
             markdown_path = report_directories[0] / "report.md"
@@ -80,7 +80,7 @@ class ReportingTests(unittest.TestCase):
             payload = json.loads(report_path.read_text(encoding="utf-8"))
             self.assertEqual(payload["schema_version"], "1.0")
             self.assertIn(
-                "# MIDS Validator Report",
+                "# OMIDS Validator Report",
                 markdown_path.read_text(encoding="utf-8"),
             )
             self.assertIn(
@@ -102,7 +102,7 @@ class ReportingTests(unittest.TestCase):
 
             self.assertEqual(result, 2)
             self.assertIn("report output must be outside", stderr.getvalue())
-            self.assertEqual(list(dataset.glob("mids_reports_*")), [])
+            self.assertEqual(list(dataset.glob("omids_reports_*")), [])
 
     def test_cli_refuses_default_output_when_run_inside_dataset(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -120,7 +120,7 @@ class ReportingTests(unittest.TestCase):
 
             self.assertEqual(result, 2)
             self.assertIn("report output must be outside", stderr.getvalue())
-            self.assertEqual(list(dataset.glob("mids_reports_*")), [])
+            self.assertEqual(list(dataset.glob("omids_reports_*")), [])
 
     def test_cli_distinguishes_validation_failure_from_report_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -130,7 +130,7 @@ class ReportingTests(unittest.TestCase):
             stderr = StringIO()
 
             with patch(
-                "mids_validator.cli.validate",
+                "omids_validator.cli.validate",
                 side_effect=ValueError("broken catalogue"),
             ):
                 with redirect_stderr(stderr):
@@ -158,9 +158,9 @@ class ReportingTests(unittest.TestCase):
             )
             self.assertEqual(
                 stdout.getvalue(),
-                f"mids validator rules created at {expected_path}\n",
+                f"OMIDS Validator rules created at {expected_path}\n",
             )
-            self.assertEqual(list(output.glob("mids_reports_*")), [])
+            self.assertEqual(list(output.glob("omids_reports_*")), [])
 
     def test_rules_mode_replaces_existing_generated_document(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -200,7 +200,7 @@ class ReportingTests(unittest.TestCase):
 
         self.assertEqual(result, 0)
         self.assertIn("--rules", stdout.getvalue())
-        self.assertIn("mids_validator_rules.md", stdout.getvalue())
+        self.assertIn("omids_validator_rules.md", stdout.getvalue())
 
     def test_rules_mode_returns_setup_error_when_output_is_not_a_directory(
         self,

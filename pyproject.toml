@@ -3,21 +3,22 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mids-validator"
-version = "0.1.0.dev0"
+name = "omids-validator"
+version = "0.2.0.dev0"
 description = "Validate MIDS-formatted musculoskeletal imaging datasets"
 requires-python = ">=3.10"
 dependencies = ["nibabel>=5.0"]
 
 [project.scripts]
-mids-validator = "mids_validator.cli:main"
-mids_validator = "mids_validator.cli:main"
+omids_validator = "omids_validator.cli:main"
+mids-validator = "omids_validator.cli:main"
+mids_validator = "omids_validator.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-mids_validator = ["data/*.json"]
+omids_validator = ["data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

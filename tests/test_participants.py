@@ -4,9 +4,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mids_validator.inventory import build_inventory
-from mids_validator.participants import create_or_populate_participants
-from mids_validator.validator import validate
+from omids_validator.inventory import build_inventory
+from omids_validator.participants import create_or_populate_participants
+from omids_validator.validator import validate
 
 
 class ParticipantWorkflowTests(unittest.TestCase):
