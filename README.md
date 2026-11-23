@@ -36,11 +36,9 @@ On Windows PowerShell, activate the environment with:
 .venv\Scripts\Activate.ps1
 ```
 
-The editable installation makes the `omids_validator` command available and
-keeps it linked to the checked-out source code.
-
-The former `mids-validator` and `mids_validator` commands remain available as
-temporary compatibility aliases for the 0.2 development line.
+The editable installation makes the `omids_validator` and `omids-validator`
+commands available and keeps them linked to the checked-out source code. Both
+commands run the same validator; the examples below use `omids_validator`.
 
 ## Usage
 
@@ -139,3 +137,8 @@ The main supporting modules are:
 - `patient_metadata.py`: one shared pass over patient JSON sidecars for Layer 5
   and participant-table updates
 - `models.py`: the findings and report objects shared by validation and reporting
+
+## License
+
+OMIDS Validator is distributed under the GNU General Public License version 3
+or any later version. See [`LICENSE`](LICENSE) for the complete terms.

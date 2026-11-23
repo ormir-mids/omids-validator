@@ -1,18 +1,27 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "omids-validator"
-version = "0.2.0.dev0"
+version = "0.2.0"
 description = "Validate MIDS-formatted musculoskeletal imaging datasets"
 requires-python = ">=3.10"
 dependencies = ["nibabel>=5.0"]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Sean McGarry" }
+]
+readme = "README.md"
+
+[project.urls]
+Repository = "https://github.com/ormir-mids/mids-validator"
+Issues = "https://github.com/ormir-mids/mids-validator/issues"
 
 [project.scripts]
 omids_validator = "omids_validator.cli:main"
-mids-validator = "omids_validator.cli:main"
-mids_validator = "omids_validator.cli:main"
+omids-validator = "omids_validator.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

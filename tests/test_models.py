@@ -11,7 +11,7 @@ class FindingTests(unittest.TestCase):
     def test_package_version_comes_from_distribution_metadata(self) -> None:
         self.assertEqual(__version__, version("omids-validator"))
 
-    def test_distribution_exposes_canonical_and_legacy_commands(self) -> None:
+    def test_distribution_exposes_both_omids_command_spellings(self) -> None:
         console_scripts = {
             entry_point.name: entry_point.value
             for entry_point in distribution("omids-validator").entry_points
@@ -22,8 +22,7 @@ class FindingTests(unittest.TestCase):
             console_scripts,
             {
                 "omids_validator": "omids_validator.cli:main",
-                "mids-validator": "omids_validator.cli:main",
-                "mids_validator": "omids_validator.cli:main",
+                "omids-validator": "omids_validator.cli:main",
             },
         )
 
