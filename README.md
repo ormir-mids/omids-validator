@@ -1,142 +1,103 @@
 # OMIDS Validator
 
-The OMIDS Validator checks MIDS-formatted musculoskeletal imaging datasets for
+OMIDS Validator checks MIDS-formatted musculoskeletal imaging datasets for
 structural, naming, companion-file, metadata, image-header, and dataset-wide
-consistency issues. It produces self-contained HTML, Markdown, and JSON reports
-that can be reviewed or shared without rerunning the validation.
+consistency issues. It produces HTML, Markdown, and JSON reports that can be
+reviewed or shared without rerunning the validation.
 
 ## Status
 
-This repository contains the current development version of the validator.
-Validation rules and command-line behavior may change while the MIDS standard
-and the implementation are being refined.
+OMIDS Validator 0.2 is an early public release intended for testing on
+MIDS-formatted datasets. Validation rules and command-line behavior may change
+as the MIDS standard and implementation are refined.
 
-## Requirements
-
-- Python 3.10 or newer
-- `pip`
-
-Runtime dependencies are declared in `pyproject.toml`. Installing the project
-also installs the required version of NiBabel and its dependencies.
+If the validator does not handle your dataset or workflow as expected, please
+[open a GitHub issue](https://github.com/ormir-mids/mids-validator/issues).
 
 ## Installation
 
-From the repository root, create a virtual environment and install the package:
+OMIDS Validator requires Python 3.10 or newer.
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
+python -m pip install omids-validator
 ```
 
-On Windows PowerShell, activate the environment with:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-The editable installation makes the `omids_validator` and `omids-validator`
-commands available and keeps them linked to the checked-out source code. Both
-commands run the same validator; the examples below use `omids_validator`.
+The installation provides two equivalent command spellings:
+`omids_validator` and `omids-validator`. The examples below use
+`omids_validator`.
 
 ## Usage
 
-Validate a dataset:
-
-```bash
-omids_validator /path/to/dataset
-```
-
-Include NIfTI header checks:
-
-```bash
-omids_validator /path/to/dataset --inspect-images
-```
-
-Write reports under a chosen directory:
+Validate a dataset and write reports under a chosen directory:
 
 ```bash
 omids_validator /path/to/dataset --output-dir /path/to/reports
 ```
 
-The report directory must be outside the dataset being validated. Each run
-creates a timestamped `omids_reports_YYYY-MM-DD_HHMMSS` directory containing:
+The report directory must be outside the dataset. Each run creates a
+timestamped `omids_reports_YYYY-MM-DD_HHMMSS` directory containing:
 
 - `report.html`: a styled, self-contained report for browser review
 - `report.md`: a plain-text-friendly review document
 - `report.json`: structured output for downstream use
 
-Ordinary validation is read-only. The `--participants` option is different: it
-creates `participants.tsv` when missing and adds subject identifiers discovered
-in the dataset. It also fills blank age and sex cells from patient JSON
-sidecars when the values can be selected safely. Existing nonblank cells are
-never overwritten. Review the dataset and use this option only when that change
-is intended.
+Include NIfTI header checks with:
 
 ```bash
-omids_validator /path/to/dataset --participants
+omids_validator /path/to/dataset --inspect-images \
+  --output-dir /path/to/reports
 ```
 
-Generate the current validation-rule catalogue without validating a dataset:
+NIfTI header inspection is optional because these checks extend beyond the
+current MIDS specification.
+
+### Participant table updates
+
+By default, OMIDS Validator does not modify the dataset. To create or update
+`participants.tsv` as part of validation, add the `--participants` option:
+
+```bash
+omids_validator /path/to/dataset --participants \
+  --output-dir /path/to/reports
+```
+
+This option adds subject identifiers found in the dataset and can fill blank
+age or sex cells from patient JSON sidecars when a value can be selected
+safely. Existing nonblank participant values are not overwritten.
+
+### Validation-rule catalogue
+
+Generate the current human-readable rule catalogue without validating a
+dataset:
 
 ```bash
 omids_validator --rules --output-dir /path/to/output
 ```
 
-This writes `omids_validator_rules.md` directly in the selected output directory
-and replaces an existing file with that name.
+This writes `omids_validator_rules.md` in the selected output directory.
 
 Run `omids_validator --help` for the complete command reference.
 
-## Exit status
+## Development
 
-- `0`: validation completed without errors, or the rule catalogue was written
-- `1`: validation completed and found one or more errors
-- `2`: the validator could not complete the requested operation
+Clone the repository and install it in editable mode:
 
-An exit status of `1` means the reports were generated successfully and contain
-validation findings.
+```bash
+git clone https://github.com/ormir-mids/mids-validator.git
+cd mids-validator
+python -m pip install -e .
+```
 
-## Running the tests
-
-With the virtual environment active and the package installed:
+Run the automated tests with:
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-## Repository layout
-
-- `src/omids_validator/`: validator, command-line interface, and report writers
-- `src/omids_validator/rules/`: validation rules organized by layer
-- `src/omids_validator/data/`: packaged rule and metadata catalogues
-- `tests/`: automated tests organized by validation layer and component
-
-## How the code fits together
-
-The installed `omids_validator` command calls `omids_validator.cli:main`.
-`cli.py` reads the command-line options and calls `validator.validate`, which
-scans the dataset once, runs the rule layers in order, and returns one complete
-report. The modules under `reporters/` then write that report in each output
-format.
-
-`__main__.py` is intentionally small. It sends `python -m omids_validator` to
-the same `cli.main` function used by the installed command.
-
-The main supporting modules are:
-
-- `inventory.py`: scans and organizes dataset paths for all rule layers
-- `file_types.py`: shared NIfTI and JSON filename helpers
-- `acquisition_profiles.py`: scan suffix, folder, and metadata definitions used
-  by Layers 1 and 3
-- `rule_catalog.py`: rule titles, severities, descriptions, and next steps from
-  `data/rules.json`
-- `participant_table.py` and `participants.py`: reading and explicitly requested
-  updates of `participants.tsv`
-- `patient_metadata.py`: one shared pass over patient JSON sidecars for Layer 5
-  and participant-table updates
-- `models.py`: the findings and report objects shared by validation and reporting
+The installed commands call `omids_validator.cli:main`. Validation is
+coordinated by `omids_validator.validator`, rule implementations are organized
+by validation layer under `src/omids_validator/rules/`, and the authoritative
+rule catalogue is `src/omids_validator/data/rules.json`.
 
 ## License
 
